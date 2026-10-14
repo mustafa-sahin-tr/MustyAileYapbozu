@@ -96,13 +96,13 @@ milestone: MVP
 
 **Aile Yapbozu** epic'inin **1. story'si** (epic #EPIC). Tema: Altyapı.
 
-**Öncelik:** P1 · **Efor:** M · **Milestone:** MVP · **Dokunduğu yer:** Unity projesi, `MustyCozyCore` UPM bağımlılığı, sahne düzeni, UGS kurulumu, Android/tablet build ayarları
+**Öncelik:** P1 · **Efor:** M · **Milestone:** MVP · **Dokunduğu yer:** Unity projesi, `MustyCozyCore` (`com.mtafasahin.cozycore`, monorepo `mtafasahin-unity-packages`) UPM bağımlılığı, sahne düzeni, UGS kurulumu, Android/tablet build ayarları
 
 ### Kullanıcı hikâyesi
 Bir geliştirici olarak Aile Yapbozu projesinin ortak paketi (UGS, yerelleştirme, ayarlar, büyük yazı modu, Reduce Motion, geri tuşu) ilk günden kullanmasını isterim, böylece 60+ arayüzü ve Firebase katmanı dışında hiçbir altyapıyı yeniden yazmam.
 
 ### Kabul kriterleri
-- [ ] **Senaryo: Temiz kurulum** · Verilen boş bir Unity 2022 LTS projesi (URP 2D) · Eğer `MustyCozyCore` paketi git URL ile eklenirse · O zaman proje derlenir ve `Bootstrap` sahnesi açılınca UGS oturumu (anonim Player Accounts) kurulur.
+- [ ] **Senaryo: Temiz kurulum** · Verilen boş bir Unity 6000.6 projesi (URP 2D) · Eğer `MustyCozyCore` paketi git URL ile eklenirse · O zaman proje derlenir ve `Bootstrap` sahnesi açılınca UGS oturumu (anonim Player Accounts) kurulur.
 - [ ] **Senaryo: Sahne akışı** · Verilen `Bootstrap → RoleGate → PlayerHome / SenderHome → Puzzle → Complete` ve `Send` sahneleri · Eğer uygulama açılırsa · O zaman 2 sn içinde rol ekranı ya da kayıtlı rolün ana ekranı görünür; geri tuşu ana ekranlarda uygulamadan çıkar, diğerlerinde bir geri gider.
 - [ ] **Senaryo: Yerelleştirme** · Verilen TR ve EN tabloları · Eğer cihaz dili TR ise · O zaman tüm metinler TR, aksi halde EN; dil Ayarlar'dan değiştirilebilir; Atkinson Hyperlegible TR karakter atlası (ğ, ş, ı, İ) tam.
 - [ ] **Senaryo: Build** · Verilen Android build ayarları · Eğer `release` build alınırsa · O zaman paket adı `com.mtafasahin.aileyapbozu`, min SDK 24, hedef SDK güncel, 64-bit, boyut < 50 MB, `android:largeHeap=false` ile 2 GB cihazda açılır.
@@ -126,7 +126,7 @@ Bir geliştirici olarak Aile Yapbozu projesinin ortak paketi (UGS, yerelleştirm
 ### Notlar
 - Core paketi Daily Drop'ta kurulmuş olmalı; değilse bu story L olur.
 - Karar: Firebase Unity SDK ayrı assembly'de (`Game.Firebase`), oyun kodu `IFamilyBackend` arayüzüyle konuşur; Supabase'e geçiş gerekirse tek katman değişir.
-- Reklam SDK'sı (AppLovin MAX) initialize edilmez; `sender_ads_enabled` false olduğu sürece hiçbir reklam çağrısı yapılmaz (APK boyutu ve 60+ güven mesajı).
+- Reklam SDK'sı (AdMob; `CoreOptions.UseAds = false`) initialize edilmez; `sender_ads_enabled` false olduğu sürece hiçbir reklam çağrısı yapılmaz (APK boyutu ve 60+ güven mesajı).
 
 ## STORY: Aile Yapbozu 2: Firebase projesi, veri modeli ve güvenlik kuralları
 labels: tema:backend, P1, efor:M
