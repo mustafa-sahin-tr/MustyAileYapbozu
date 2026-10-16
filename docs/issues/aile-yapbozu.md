@@ -6,27 +6,30 @@ labels: epic, enhancement
 ## Neden
 Sahibi (2026-10-14): Fluffy Drop'un 6 ayda 1M+ indirmesi mekanikten değil dağıtım tarifinden geldi: "No Timer" başlık, 60+ kitle, Trivia kategorisi. Aynı kitle mağazada "jigsaw for seniors" ve "puzzles for seniors" arıyor ama bulduğu oyunlar küçük parça, küçük yazı, her seviye sonrası interstitial ve işlevsiz coin. Bu kitlenin asıl eksik motivasyonu içerik değil, bağ: çocuk ve torunlarından gelen bir fotoğraf, bitince dinlenen 15 saniyelik "Anneanne, bu Ege'nin ilk okul günü" mesajı. Aile Yapbozu, 60+ oyuncuya süre ve reklam olmadan büyük parçalı yapboz verir; parayı ödeyen ve içeriği üreten taraf 30–50 yaş aralığındaki çocuk/torundur. Ödeyen ile oynayan ayrıdır; bu yüzden reklam ekonomisi değil aile aboneliği ekonomisi kurulur.
 
+PO kararı (2026-10-16): bağ yalnızca aileyle sınırlı değil. Veri modeli "aile" yerine **çember**dir: bir kullanıcı birden fazla çember kurar ya da davet koduyla katılır ve onlara ad verir ("Aile 👨‍👩‍👧", "Okul arkadaşları 🎒", "Komşular 🏡"). Çemberler kapalıdır; yalnızca davet koduyla girilir, yabancıdan fotoğraf gelmez. Mağaza konumlandırması v1'de aile ve 60+ odaklı kalır; arkadaş çemberlerinin payı soft launch'ta `circle_type` ile ölçülür.
+
 Araştırma raporu ve tasarım taslakları: https://claude.ai/code/artifact/8ab0af47-8a63-4fac-8fd7-aad383f2fe81 (bölüm 5, fikir 3 — "Büyük ve Sakin" serisi) ve https://claude.ai/artifact/3VMA4d5qTn8GF89PDf5Uj9 (Aile Yapbozu · 60+, Aile Yapbozu · Gönder).
 
-Portföydeki rolü: "Büyük ve Sakin" serisinin ilk uygulaması; `MustyCozyCore`'un ilk Firebase'li tüketicisi; 60+ arayüz sistemi, aile bağlantısı, Firebase veri katmanı ve TTS sarmalayıcısı bir sonraki iki uygulamada (Büyük Sudoku, Büyük Kelime Avı) aynen kullanılır ("seri motoru" — bu epic'te kapsam dışı, 24. story'de not).
+Portföydeki rolü: "Büyük ve Sakin" serisinin ilk uygulaması; `MustyCozyCore`'un ilk Firebase'li tüketicisi; 60+ arayüz sistemi, çember bağlantısı, Firebase veri katmanı ve TTS sarmalayıcısı bir sonraki iki uygulamada (Büyük Sudoku, Büyük Kelime Avı) aynen kullanılır ("seri motoru" — bu epic'te kapsam dışı, 24. story'de not).
 
 ## Hedef kitle ve konumlandırma
 - **Oyuncu (60+):** çoğu Android, 2–5 yaşında orta/alt segment telefon veya hediye edilmiş tablet; gözlük, titreyen el, küçük yazıya tahammülsüzlük. Oyunu kurmaz, kurulur; çoğu zaman davet kodunu çocuğu girer.
 - **Gönderen (30–50, çocuk/torun):** uygulamayı mağazada bulan, kuran, ödeyen ve içerik üreten taraf. Motivasyonu: uzaktaki anne/babayla ritüel kurmak, "aradım mı" vicdanını hafifletmek.
+- **Arkadaş çemberi (ikincil):** 60+ oyuncunun kendi arkadaşları (komşu, eski iş arkadaşı, okul arkadaşı) ya da birbirine yapboz atan genç arkadaşlar. Arkadaş çemberinde herkes hem gönderir hem çözer. v1'de pazarlanmaz, ürün içinde "Arkadaş çemberi kur" ile açılır.
 - Mağaza adı: **Family Jigsaw: Puzzles for Seniors** (EN; Play 30 karakter sınırı için kısa biçim 17. story'de) / **Aile Yapbozu: Büyükler İçin** (TR). Anahtar kelimeler: jigsaw for seniors, family puzzle, puzzles for seniors, büyükanne yapboz, no timer jigsaw.
 - Konumlandırma cümlesi: "Fotoğrafı sen gönder, annen yapbozu çözsün, bitince sesini duysun. Süre yok. Reklam yok."
-- Rakiplerden farkı: iki rol, aile içi içerik, sesli mesaj ödülü, 88 px dokunma hedefi, hiç interstitial, tek vurgu rengi. Yapboz oyunları arasında "içeriği aile üretir" tek biz.
+- Rakiplerden farkı: iki rol, aile ve arkadaş çemberlerinden gelen içerik, sesli mesaj ödülü, 88 px dokunma hedefi, hiç interstitial, tek vurgu rengi. Yapboz oyunları arasında "içeriği aile üretir" tek biz.
 
 ## Core loop ve kurallar (v1 kararları)
-1. **Aile:** gönderen aileyi kurar, oyuncunun adını girer ("Kime gönderiyorsun? → Ayşe"), 6 karakterli davet kodu/link üretir. Oyuncu cihazında kod girilince aileye katılır; rol o anda seçilir (Çözeceğim / Göndereceğim). Aile en fazla 5 üye (ücretsiz katmanda 3: 1 oyuncu + 2 gönderen).
-2. **Gönderim:** fotoğraf seç → istemcide uzun kenar 1024 px, JPEG q80 → zorluk (Kolay 3×3 = 9, Orta 4×4 = 16, Zor 5×5 = 25 parça; oyuncunun son süresine göre öneri) → 12–30 sn sesli mesaj (AAC/M4A, ≤ 500 KB) → en fazla 80 karakter not → GÖNDER. Firestore `puzzles/{id}` `status: sent`.
-3. **Oyuncu ana ekranı:** "Günaydın Ayşe Hanım", gönderen avatarıyla gelen yapboz kartı, tek büyük düğme ÇÖZ, altta "Süre yok · Reklam yok" satırı. Zorunlu eğitim yok; ilk yapboz Kolay gelir.
+1. **Çember:** kullanıcı bir çember kurar; adını ve simgesini verir (öneriler: Aile 👨‍👩‍👧, Arkadaşlar 🎒, Komşular 🏡; tür `family`|`friends`|`other`), ilk alıcının adını girer ("Kime gönderiyorsun? → Ayşe") ve 6 karakterli davet kodu/link üretir. Kod girilince kişi o çembere katılır. Bir kullanıcı birden fazla çemberde olabilir; rol üyeliğe yazılır (`player` çözer, `sender` gönderir; arkadaş çemberinde varsayılan ikisi birden). Çember en fazla 5 üye; ücretsiz katmanda 3 üye ve kişi başına en fazla 2 kendi kurduğu çember (başkasının çemberine katılmak sınırsız). Çemberler kapalıdır: arama, keşfet, herkese açık profil yok.
+2. **Gönderim:** fotoğraf seç → istemcide uzun kenar 1024 px, JPEG q80 → zorluk (Kolay 3×3 = 9, Orta 4×4 = 16, Zor 5×5 = 25 parça; oyuncunun son süresine göre öneri) → 12–30 sn sesli mesaj (AAC/M4A, ≤ 500 KB) → en fazla 80 karakter not → GÖNDER. Gönderimde önce çember, sonra çemberden tek alıcı seçilir (tek çember / tek oyuncu varsa adım atlanır). Firestore `puzzles/{id}` `{circleId, receiverId, status: sent}`.
+3. **Oyuncu ana ekranı:** "Günaydın Ayşe Hanım", gönderen avatarıyla gelen yapboz kartı, tek büyük düğme ÇÖZ, altta "Süre yok · Reklam yok" satırı. Oyuncu çember değiştirmez: tüm çemberlerden gelen yapbozlar tek listede, her kartta küçük etiket ("Aile · Emre'den"). Zorunlu eğitim yok; ilk yapboz Kolay gelir.
 4. **Çözme:** parçalar alttaki 100 px tepside (tablette sağda); sürükle-bırak; doğru yuvanın 24 dp yakınına bırakınca yapışır; boş yuvalar kesikli çerçeve ve soluk "buraya"; yanlış yere bırakılan parça tahtada kalır (ceza yok). İPUCU GÖSTER (64 px yüksek) elde tutulan ya da bir sonraki parçanın yuvasını 3 kez yakıp söndürür ve TTS söyler: "Parçayı sağ üste bırak". Süre sayacı hiçbir ekranda yok.
 5. **Tamamlama anı:** parça kenarları 600 ms'de silinir, fotoğraf netleşir; gönderenin sesli mesajı otomatik çalar (tekrar düğmesi büyük); not okunur; konfeti 2 sn (Reduce Motion açıkken yalnızca parıltı). Oyuncu "Teşekkür" düğmesine basarsa gönderene kalp + "annen yapbozu bitirdi · 14 dk" bildirimi gider (basmazsa da bitirdi bildirimi gider, kalp gitmez).
-6. **Ücretsiz katman:** aile başına takvim haftasında (Pazartesi 00:00, oyuncunun saat dilimi) 2 yapboz gönderimi; sunucu tarafı (Cloud Function) sayar. Oyuncu tarafında hiçbir reklam ve hiçbir satın alma teklifi yok. Gönderen tarafında kota dolunca ve her 5. gönderimde yumuşak Aile Planı kartı; interstitial hiçbir tarafta yok.
-7. **Aile Planı:** 3,99 USD/ay (29,99 USD/yıl), 5 üyeye kadar, sınırsız gönderim, tüm nostalji paketleri, reklamsız garantisi. Ödeyen gönderen; plan aile belgesine yazılır, tüm üyeler yararlanır.
+6. **Ücretsiz katman:** gönderen başına takvim haftasında (Pazartesi 00:00, gönderenin saat dilimi) 2 yapboz gönderimi, tüm çemberleri toplamında (çember açarak kota çoğaltılamaz); sunucu tarafı (Cloud Function) sayar. Oyuncu tarafında hiçbir reklam ve hiçbir satın alma teklifi yok. Gönderen tarafında kota dolunca ve her 5. gönderimde yumuşak Aile Planı kartı; interstitial hiçbir tarafta yok.
+7. **Aile Planı** (çalışma adı; nihai ad "Aile Planı" / "Çember Planı" / "Plus" 18. story'de, mağazada "Family" ASO için korunur): 3,99 USD/ay (29,99 USD/yıl), reklamsız garantisi. Plan satın alan kişiye (`users/{uid}.plan`) yazılır ve onun kurduğu tüm çemberleri kapsar: çember başına 5 üye, sınırsız çember, o çemberlere yapılan tüm gönderimler kotasız, o çemberlerin üyelerine tüm nostalji paketleri açık. Plan sahibinin kendi gönderimleri de her çemberde kotasız.
 8. **Ücretsiz içerik:** aile fotoğrafı yoksa telifsiz "nostalji" paketleri (Eski İstanbul, Çiçekler, Köy Hayatı; her pakette 12 fotoğraf; 1 paket ücretsiz) ve günün yapbozu (her gün 1, herkese aynı). Bunlarda sesli mesaj yok, "Bugünün yapbozu" notu var.
-9. **Veri ve saklama:** fotoğraf ve ses yalnızca aile üyelerince okunur; oyuncu ya da gönderen siler; 90 gün sonra Cloud Function otomatik siler. Kişisel veri silme talebi uygulama içinden tek düğmeyle.
+9. **Veri ve saklama:** fotoğraf ve ses yalnızca yapbozun çemberinin üyelerince okunur; oyuncu ya da gönderen siler; 90 gün sonra Cloud Function otomatik siler. Kişisel veri silme talebi uygulama içinden tek düğmeyle.
 10. **Backend kararı:** UGS'nin blob depolaması olmadığı için Firebase (Anonymous Auth + Firestore + Storage + Cloud Functions + FCM + Crashlytics). Supabase değerlendirildi (Auth + Postgres + Storage + Edge Functions) ama Unity SDK olgunluğu, FCM ve Storage kuralları Firebase'i seçtirdi; ücretsiz katman soft launch hacmine yeter. UGS yine Analytics + Remote Config için Core paketinden gelir.
 11. **Arayüz sistemi (60+):** Atkinson Hyperlegible; gövde 22–28 px, başlık 32–36 px; dokunma hedefi ≥ 88 px; kontrast ≥ 4,5:1 (metin 7:1 hedef); tek vurgu rengi (koyu turkuaz), kırmızı yalnızca hata; gizli jest yok, her eylem görünür bir düğme; Android geri tuşu her yerde bir geri gider.
 12. **Cihaz:** Android min SDK 24, 2 GB RAM hedefi, tablet birinci sınıf (iPad/Android tablet, yatay ve dikey). iOS build soft launch sonrası.
@@ -37,11 +40,11 @@ Portföydeki rolü: "Büyük ve Sakin" serisinin ilk uygulaması; `MustyCozyCore
 - Büyük Sudoku / Büyük Kelime Avı ile seri geçişi (SONRA; motor bu epic'te çıkarılır ama paket ayrışmaz).
 - Reklam: hiçbir yerleşim; Core `AdsService` bağlı ama `sender_ads_enabled=false` (Remote Config), soft launch verisine göre değerlendirilir.
 - Döndürmeli parça, serbest şekilli (grid dışı) parça, 6×6 ve üstü.
-- Çoklu aile üyeliği (bir kullanıcı tek ailede), gerçek zamanlı birlikte çözme.
+- Herkese açık çember, çember arama/keşfet, davetsiz mesaj; bir yapbozu tek seferde birden fazla alıcıya gönderme ("herkese gönder", SONRA); gerçek zamanlı birlikte çözme.
 - iOS çıkışı MVP'de yok.
 
 ## Başarı ölçütleri (kapılar)
-- Soft launch (TR, UK, CA; Android; 14 gün): davet kabulü (kabul edilen davet / üretilen davet) ≥ %40; aktif aile başına haftalık gönderilen yapboz ≥ 2; Aile Planı dönüşümü (plan alan aile / en az bir kabul edilmiş daveti olan aile, 14 gün) ≥ %8; gönderilen yapbozun 72 saat içinde tamamlanma oranı ≥ %70; oyuncu tarafında çökme < %0,5 (eski cihazlar dahil).
+- Soft launch (TR, UK, CA; Android; 14 gün): davet kabulü (kabul edilen davet / üretilen davet) ≥ %40; aktif çember başına haftalık gönderilen yapboz ≥ 2; Aile Planı dönüşümü (plan alan kullanıcı / en az bir kabul edilmiş daveti olan çember kurucusu, 14 gün) ≥ %8; gönderilen yapbozun 72 saat içinde tamamlanma oranı ≥ %70; oyuncu tarafında çökme < %0,5 (eski cihazlar dahil). Tüm kapı metrikleri `circle_type` (aile / arkadaş / diğer) kırılımıyla da raporlanır; arkadaş çemberleri belirgin büyürse ayrı mağaza sayfası ya da "Arkadaş Yapbozu" varyantı değerlendirilir.
 - Kapı geçilirse: iOS build, yıllık fiyat testi, Canlı; Büyük Sudoku planı açılır.
 - Kapı geçilmezse: davet kabulü düşükse 3. story (onboarding) iterasyonu; gönderim düşükse 10–12 (gönderen akışı) ve 21 (hatırlatma); dönüşüm düşükse 14 ve 18; iki hafta sonra yine geçilmezse rafa.
 
@@ -49,7 +52,7 @@ Portföydeki rolü: "Büyük ve Sakin" serisinin ilk uygulaması; `MustyCozyCore
 **P1 · MVP**
 - [ ] Aile Yapbozu 1: Core paketini bağla ve proje iskeleti
 - [ ] Aile Yapbozu 2: Firebase projesi, veri modeli ve güvenlik kuralları
-- [ ] Aile Yapbozu 3: Rol seçimi ve davet koduyla aile bağlantısı
+- [ ] Aile Yapbozu 3: Rol seçimi, çember kurma ve davet koduyla bağlantı
 - [ ] Aile Yapbozu 4: Fotoğraftan parça üretimi: 3×3/4×4/5×5 grid ve tab-boşluk maskeleri
 - [ ] Aile Yapbozu 5: Sürükle-bırak, yakınlık yapıştırma ve parça tepsisi
 - [ ] Aile Yapbozu 6: İPUCU GÖSTER ve sesli yönlendirme (TTS)
@@ -66,7 +69,7 @@ Portföydeki rolü: "Büyük ve Sakin" serisinin ilk uygulaması; `MustyCozyCore
 - [ ] Aile Yapbozu 17: Mağaza sayfası, ASO ve soft launch yapılandırması
 **P2 · Soft launch**
 - [ ] Aile Yapbozu 18: Aile Planı aboneliği ve geri yükleme
-- [ ] Aile Yapbozu 19: Aile yönetimi: üyeler, birden fazla oyuncu, hesap bağlama
+- [ ] Aile Yapbozu 19: Çember yönetimi: üyeler, birden fazla oyuncu, hesap bağlama
 - [ ] Aile Yapbozu 20: Ayarlar, yazı boyutu kademeleri ve değerlendirme isteği
 **P3 · Canlı**
 - [ ] Aile Yapbozu 21: Gönderen hatırlatması ve haftalık aile özeti
@@ -80,15 +83,16 @@ Portföydeki rolü: "Büyük ve Sakin" serisinin ilk uygulaması; `MustyCozyCore
 ## Riskler ve açık sorular
 - **İki taraflı soğuk başlangıç:** oyuncu, gönderen davet etmeden hiçbir şey yapamaz. Azaltma: nostalji paketleri ve günün yapbozu (13) davetsiz de açılır; oyuncu ekranında "Ailenden kod iste" değil, gönderen ekranında "Annenin telefonuna kur" akışı (3).
 - **Efor toplamı:** P1'in 17 story'si yaklaşık 27–30 iş günü; "3 haftada MVP" Core paketinin ve Firebase şablonunun hazır olmasına bağlı. 13 ve 15'in bir bölümü soft launch'ın ilk haftasına kayabilir; 4–8 kaymaz.
-- **Anonim hesap kaybı:** Firebase Anonymous Auth cihaza bağlı; gönderen telefon değiştirince aile ve abonelik erişimi kaybolur. v1'de davet koduyla yeniden katılım + Google Play abonelik geri yükleme; Google/Apple hesap bağlama 19. story.
+- **Çoklu çember karmaşıklığı:** 60+ oyuncu için çember kavramı görünmez kalmalı (tek gelen kutusu, küçük etiket); çember yönetimi gönderen tarafındadır. Kota gönderen başına olduğu için çember açmak kota açığı değildir.
+- **Anonim hesap kaybı:** Firebase Anonymous Auth cihaza bağlı; gönderen telefon değiştirince çember ve abonelik erişimi kaybolur. v1'de davet koduyla yeniden katılım + Google Play abonelik geri yükleme; Google/Apple hesap bağlama 19. story.
 - **Ses formatı:** Unity AAC çözmez; kayıt ve çalma için küçük yerel eklenti (Android MediaRecorder/MediaPlayer, iOS AVAudioRecorder/AVAudioPlayer) şart (10, 7). Editor'de WAV yedek.
 - **Eski cihaz belleği:** 5×5'te 25 parça dokusu ≈ 10 MB; 2 GB cihazda kabul edilebilir ama fotoğraf 1024 px üstüne çıkmamalı (9).
-- **Çocuk fotoğrafı ve KVKK:** gönderen üçüncü kişilerin fotoğrafını yüklüyor; rıza ekranı gönderen tarafında, "Kids" kategorisi değil, yaş beyanı 18+ (15). Hukuki metin şablonu dışarıdan alınır; açık soru: TR için VERBİS kaydı gerekiyor mu (yıllık 50 çalışan / 25 M TL eşiği altında muaf; doğrulanacak).
+- **Çocuk fotoğrafı ve KVKK:** gönderen üçüncü kişilerin fotoğrafını yüklüyor; arkadaş çemberlerinde aile dışı kişiler de görür; rıza ekranı gönderen tarafında, "Kids" kategorisi değil, yaş beyanı 18+ (15). Hukuki metin şablonu dışarıdan alınır; açık soru: TR için VERBİS kaydı gerekiyor mu (yıllık 50 çalışan / 25 M TL eşiği altında muaf; doğrulanacak).
 - **TTS kalitesi:** eski Android cihazlarda TR sesi yüklü olmayabilir; TTS yoksa metin balonuyla sessiz yedek (6).
 - **Play başlık sınırı:** istenen EN ad 34 karakter; 30 karakterlik kısa biçim 17'de kararlaştırılır.
 
 ## Done when
-P1 story'leri kapalı, 3 ülkede 14 günlük soft launch tamamlanmış, kapı raporu (davet kabulü, haftalık gönderim, dönüşüm, tamamlama, çökme) epic'e yorum olarak eklenmiş ve karar (Canlı + Büyük Sudoku / iterasyon / raf) yazılmış.
+P1 story'leri kapalı, 3 ülkede 14 günlük soft launch tamamlanmış, kapı raporu (davet kabulü, haftalık gönderim, dönüşüm, tamamlama, çökme; `circle_type` kırılımı) epic'e yorum olarak eklenmiş ve karar (Canlı + Büyük Sudoku / iterasyon / raf) yazılmış.
 
 ## STORY: Aile Yapbozu 1: Core paketini bağla ve proje iskeleti
 labels: tema:backend, P1, efor:M
@@ -112,9 +116,9 @@ Bir geliştirici olarak Aile Yapbozu projesinin ortak paketi (UGS, yerelleştirm
 ### Teknik görevler (Unity/C#)
 - [ ] Repo iskeleti: `Assets/_Game/{Scripts,Prefabs,Art,Audio,Data,Fonts}`, `.gitignore`, `docs/game-design.md` (bu epic'in kuralları), `docs/analytics.md`, `docs/privacy.md` (15. story doldurur).
 - [ ] `MustyCozyCore` bağımlılığı (UPM git URL, sürüm etiketi): `UgsBootstrap`, `Localization`, `SettingsScreen`, `BackButtonRouter`, `LargeTextMode`, `ReduceMotion`, `Haptics`, `AudioManager`; `AdsService` ve `IapService` bağlı ama reklam başlatılmaz.
-- [ ] Sahne yöneticisi: `SceneFlow` (async yükleme, 200 ms perde), `AppState` (ScriptableObject tabanlı: role, familyId, userId).
+- [ ] Sahne yöneticisi: `SceneFlow` (async yükleme, 200 ms perde), `AppState` (ScriptableObject tabanlı: userId, `circleIds`, son kullanılan çember, cihazdaki baskın rol — RoleGate'in hangi ana ekranı açacağı için).
 - [ ] UGS: Player Accounts anonim giriş, Analytics, Remote Config, ortamlar (`dev`, `prod`). Cloud Save kullanılmaz (veri Firestore'da).
-- [ ] Remote Config şeması: `snap_distance_dp`, `hint_blink_count`, `tts_rate`, `free_weekly_sends`, `premium_card_every_n_sends`, `sender_ads_enabled`, `daily_puzzle_grid`.
+- [ ] Remote Config şeması: `snap_distance_dp`, `hint_blink_count`, `tts_rate`, `free_weekly_sends`, `free_owned_circles`, `free_circle_members`, `plan_circle_members`, `premium_card_every_n_sends`, `sender_ads_enabled`, `daily_puzzle_grid`.
 - [ ] Font: Atkinson Hyperlegible (OFL) TextMeshPro atlası (Regular/Bold, 22–36 px için SDF 36 pt örnekleme), fallback Noto Sans.
 - [ ] CI: GitHub Actions ile Android debug build (GameCI); artefakt APK; tablet ve telefon için iki emülatör profili.
 - [ ] Kod stili: `.editorconfig`, Roslyn analizörleri, Assembly Definition dosyaları (Game, Game.Firebase, Game.Editor, Tests).
@@ -125,7 +129,7 @@ Bir geliştirici olarak Aile Yapbozu projesinin ortak paketi (UGS, yerelleştirm
 
 ### Notlar
 - Core paketi Daily Drop'ta kurulmuş olmalı; değilse bu story L olur.
-- Karar: Firebase Unity SDK ayrı assembly'de (`Game.Firebase`), oyun kodu `IFamilyBackend` arayüzüyle konuşur; Supabase'e geçiş gerekirse tek katman değişir.
+- Karar: Firebase Unity SDK ayrı assembly'de (`Game.Firebase`), oyun kodu `ICircleBackend` arayüzüyle konuşur; Supabase'e geçiş gerekirse tek katman değişir.
 - Reklam SDK'sı (AdMob; `CoreOptions.UseAds = false`) initialize edilmez; `sender_ads_enabled` false olduğu sürece hiçbir reklam çağrısı yapılmaz (APK boyutu ve 60+ güven mesajı).
 
 ## STORY: Aile Yapbozu 2: Firebase projesi, veri modeli ve güvenlik kuralları
@@ -134,15 +138,16 @@ milestone: MVP
 
 **Aile Yapbozu** epic'inin **2. story'si** (epic #EPIC). Tema: Altyapı.
 
-**Öncelik:** P1 · **Efor:** M · **Milestone:** MVP · **Dokunduğu yer:** Firebase projesi (`dev`, `prod`), Firestore şeması, Storage kuralları, `FirebaseBackend : IFamilyBackend`, Cloud Functions repo klasörü
+**Öncelik:** P1 · **Efor:** M · **Milestone:** MVP · **Dokunduğu yer:** Firebase projesi (`dev`, `prod`), Firestore şeması, Storage kuralları, `FirebaseBackend : ICircleBackend`, Cloud Functions repo klasörü
 
 ### Kullanıcı hikâyesi
-Bir geliştirici olarak aile, yapboz ve kullanıcı verisinin yalnızca ilgili aile üyelerince okunabildiği, istemciden kandırılamayan bir veri katmanı isterim, böylece fotoğraf ve ses gibi hassas içerik güvenle saklanır.
+Bir geliştirici olarak çember, yapboz ve kullanıcı verisinin yalnızca ilgili çemberin üyelerince okunabildiği, istemciden kandırılamayan bir veri katmanı isterim, böylece fotoğraf ve ses gibi hassas içerik güvenle saklanır.
 
 ### Kabul kriterleri
-- [ ] **Senaryo: Anonim giriş** · Verilen ilk açılış · Eğer Bootstrap tamamlanırsa · O zaman Firebase Anonymous Auth ile `uid` alınır ve `users/{uid}` belgesi `{role: null, displayName: null, lastActiveAt, fcmTokens: []}` ile oluşur; sonraki açılışlarda aynı uid.
-- [ ] **Senaryo: Şema** · Verilen Firestore · Eğer bir yapboz gönderilirse · O zaman `puzzles/{id}` `{familyId, senderId, receiverId, photoPath, pieces: 9|16|25, audioPath, audioSec, note, status: "sent"|"opened"|"completed", createdAt, openedAt, completedAt, durationS, hints, thanked}` alanlarını taşır ve `families/{familyId}` `{members: [{uid, role, displayName, joinedAt}], plan: "free"|"family", planUntil, weekKey, weekSends, createdBy}` biçimindedir.
-- [ ] **Senaryo: Üye olmayan okuyamaz** · Verilen A ailesinin yapbozu · Eğer B ailesinin kullanıcısı `puzzles/{id}` ya da Storage dosyasını okumayı denerse · O zaman kural reddeder (Firebase Emulator testi).
+- [ ] **Senaryo: Anonim giriş** · Verilen ilk açılış · Eğer Bootstrap tamamlanırsa · O zaman Firebase Anonymous Auth ile `uid` alınır ve `users/{uid}` belgesi `{displayName: null, circleIds: [], plan: "free"|"plus", planUntil: null, tz, locale, weekKey, weekSends: 0, lastActiveAt, fcmTokens: []}` ile oluşur; sonraki açılışlarda aynı uid.
+- [ ] **Senaryo: Şema** · Verilen Firestore · Eğer bir yapboz gönderilirse · O zaman `puzzles/{id}` `{circleId, senderId, receiverId, photoPath, pieces: 9|16|25, audioPath, audioSec, note, status: "sent"|"opened"|"completed", createdAt, openedAt, completedAt, durationS, hints, thanked}` alanlarını taşır; `circles/{circleId}` `{name, emoji, type: "family"|"friends"|"other", ownerId, memberIds: [uid], memberCount, createdAt}` ve `circles/{circleId}/members/{uid}` `{roles: ["player"|"sender"], displayName, addedBy, joinedAt}` biçimindedir (rol çember içi; aynı kullanıcı bir çemberde oyuncu, diğerinde gönderen olabilir).
+- [ ] **Senaryo: Üye olmayan okuyamaz** · Verilen A çemberinin yapbozu · Eğer A'nın üyesi olmayan bir kullanıcı (başka çemberlerde ortak üyeleri olsa bile) `puzzles/{id}` ya da Storage dosyasını okumayı denerse · O zaman kural reddeder (Firebase Emulator testi).
+- [ ] **Senaryo: Çoklu çember** · Verilen kullanıcı X, A ve B çemberlerinin üyesi · Eğer X kendi gelen kutusunu sorgularsa · O zaman iki çemberden gelen yapbozlar tek sorguda (`receiverId == X`) gelir; X, A'daki bir yapbozu B'nin bir üyesine gönderemez (alıcı aynı çemberin üyesi olmalı, kural testi).
 - [ ] **Senaryo: Silme yetkisi** · Verilen bir yapboz · Eğer silen kişi `senderId` ya da `receiverId` ise · O zaman silme kabul edilir; diğer üyelerse reddedilir.
 - [ ] **Senaryo: Storage sınırları** · Verilen yükleme · Eğer `photo.jpg` > 2 MB ya da `voice.m4a` > 500 KB ya da içerik tipi uymuyorsa · O zaman Storage kuralı reddeder.
 - [ ] **Senaryo: Çevrimdışı** · Verilen bağlantı yok · Eğer oyuncu daha önce indirilmiş bir yapbozu açarsa · O zaman Firestore önbelleği ve yerel dosya önbelleğinden açılır; durum güncellemesi bağlantı gelince gider.
@@ -150,11 +155,11 @@ Bir geliştirici olarak aile, yapboz ve kullanıcı verisinin yalnızca ilgili a
 
 ### Teknik görevler (Unity/C#)
 - [ ] Firebase projeleri `aileyapbozu-dev`, `aileyapbozu-prod`; Unity SDK paketleri: Auth, Firestore, Storage, Messaging, Crashlytics (Functions çağrısı için `Functions` paketi).
-- [ ] `IFamilyBackend` arayüzü: `SignInAsync`, `GetFamilyAsync`, `CreateFamilyAsync`, `JoinFamilyAsync(code)`, `CreatePuzzleAsync`, `ListPuzzlesAsync(receiverId)`, `UpdatePuzzleStatusAsync`, `UploadAsync(path, bytes, contentType)`, `DownloadAsync(path)`, `DeletePuzzleAsync`; `FirebaseBackend` uygulaması; `FakeBackend` (Editor ve testler).
-- [ ] Firestore kuralları (`firestore.rules`): `isMember(familyId)` yardımcı fonksiyonu; `puzzles` okuma yalnızca üye, yazma `create` yalnızca gönderen rolü ve `senderId == request.auth.uid`, `update` yalnızca `status/openedAt/completedAt/durationS/hints/thanked` alanları ve yalnızca `receiverId`, `delete` gönderen ya da alıcı.
-- [ ] Storage kuralları (`storage.rules`): `families/{familyId}/puzzles/{puzzleId}/{file}`; okuma üye; yazma boyut ve `contentType` (`image/jpeg`, `audio/mp4`) kontrolü.
+- [ ] `ICircleBackend` arayüzü: `SignInAsync`, `ListMyCirclesAsync`, `GetCircleAsync(id)`, `CreateCircleAsync(name, emoji, type)`, `JoinCircleAsync(code, roles)`, `CreatePuzzleAsync`, `ListPuzzlesAsync(receiverId)`, `UpdatePuzzleStatusAsync`, `UploadAsync(path, bytes, contentType)`, `DownloadAsync(path)`, `DeletePuzzleAsync`; `FirebaseBackend` uygulaması; `FakeBackend` (Editor ve testler).
+- [ ] Firestore kuralları (`firestore.rules`): `isMember(circleId)` (`request.auth.uid in circles/{id}.memberIds`) ve `hasRole(circleId, role)` yardımcıları; `circles` okuma üye, yazma yalnızca Cloud Function (kurma/katılma/çıkarma sunucuda); `puzzles` okuma yalnızca çember üyesi, `create` yalnızca o çemberde `sender` rolü, `senderId == request.auth.uid` ve `receiverId` aynı çemberde `player`, `update` yalnızca `status/openedAt/completedAt/durationS/hints/thanked` alanları ve yalnızca `receiverId`, `delete` gönderen ya da alıcı.
+- [ ] Storage kuralları (`storage.rules`): `circles/{circleId}/puzzles/{puzzleId}/{file}`; okuma çember üyesi (`firestore.get` ile `memberIds`); yazma boyut ve `contentType` (`image/jpeg`, `audio/mp4`) kontrolü.
 - [ ] Firestore çevrimdışı kalıcılık açık; `LocalCache` sınıfı: `persistentDataPath/puzzles/{id}/{photo.jpg,voice.m4a}` indirme ve temizleme (silinen yapbozda dosyalar da silinir).
-- [ ] Cloud Functions klasörü `functions/` (TypeScript, Node 20): `onPuzzleCreated`, `onPuzzleCompleted`, `joinFamily`, `enforceWeeklyQuota`, `scheduledCleanup`, `deleteMyData` iskeletleri (gövdeler 3, 11, 12, 14, 15'te).
+- [ ] Cloud Functions klasörü `functions/` (TypeScript, Node 20): `onPuzzleCreated`, `onPuzzleCompleted`, `createCircle`, `joinCircle`, `enforceWeeklyQuota`, `scheduledCleanup`, `deleteMyData` iskeletleri (gövdeler 3, 11, 12, 14, 15'te).
 - [ ] Emulator Suite ile kural testleri (`firebase emulators:exec`), CI'da çalışır.
 - [ ] Hata eşleme: Firebase hataları `BackendError {Network, Permission, NotFound, Quota}` enum'una çevrilir; UI metinleri 60+ dilinde ("İnternet yok gibi görünüyor. Tekrar deneyelim.").
 
@@ -163,49 +168,56 @@ Bir geliştirici olarak aile, yapboz ve kullanıcı verisinin yalnızca ilgili a
 
 ### Notlar
 - Karar: Firebase (Unity SDK olgun, FCM, Storage kuralları, ücretsiz katman soft launch hacmine yeter). Supabase alternatifi `docs/adr/0001-backend.md`'de kayıtlı.
-- Karar: Cloud Save yok; tüm oyuncu durumu Firestore'da (aile verisiyle aynı yerde, tek kaynak).
+- Karar: Cloud Save yok; tüm oyuncu durumu Firestore'da (çember verisiyle aynı yerde, tek kaynak).
+- Karar (2026-10-16): `families` yerine `circles`; üyelik alt koleksiyonda, `memberIds` dizisi kural kontrolü ve `array-contains` sorgusu için tekrarlanır (en fazla 5 üye, dizi küçük kalır). Kota ve plan kullanıcı belgesinde (14, 18).
 - Firestore belge kimlikleri rastgele; davet kodu belgenin kendisi değil `invites/{code}` koleksiyonu (3. story).
-- Soft launch maliyet tahmini: 2.000 aile × haftada 2 yapboz × 400 KB ≈ 1,6 GB/hafta Storage çıkışı; ücretsiz katman (Spark) sınırları `docs/adr/0001-backend.md`'de; Blaze'e geçiş kapı sonrasına.
+- Soft launch maliyet tahmini: 2.000 çember × haftada 2 yapboz × 400 KB ≈ 1,6 GB/hafta Storage çıkışı; ücretsiz katman (Spark) sınırları `docs/adr/0001-backend.md`'de; Blaze'e geçiş kapı sonrasına.
 
-## STORY: Aile Yapbozu 3: Rol seçimi ve davet koduyla aile bağlantısı
-labels: tema:aile, P1, efor:M
+## STORY: Aile Yapbozu 3: Rol seçimi, çember kurma ve davet koduyla bağlantı
+labels: tema:aile, P1, efor:L
 milestone: MVP
 
-**Aile Yapbozu** epic'inin **3. story'si** (epic #EPIC). Tema: Aile bağlantısı.
+**Aile Yapbozu** epic'inin **3. story'si** (epic #EPIC). Tema: Çember bağlantısı.
 
-**Öncelik:** P1 · **Efor:** M · **Milestone:** MVP · **Dokunduğu yer:** `RoleGate` sahnesi, `FamilyService`, `InviteCode`, Cloud Function `joinFamily`, App Links
+**Öncelik:** P1 · **Efor:** L · **Milestone:** MVP · **Dokunduğu yer:** `RoleGate` sahnesi, `CircleService`, `CreateCircleView`, `InviteCode`, Cloud Functions `createCircle` / `createInvite` / `joinCircle`, App Links
 
 ### Kullanıcı hikâyesi
-Bir gönderen olarak annemin telefonuna uygulamayı kurup iki dakikada bağlamak isterim; bir oyuncu olarak ise sadece büyük bir kod girip "Hoş geldin Ayşe Hanım" görmek isterim, böylece hiçbir form doldurmadan ilk yapboza ulaşırım.
+Bir gönderen olarak annemin telefonuna uygulamayı kurup iki dakikada "Aile" çemberimize bağlamak, ayrıca okul arkadaşlarımla ayrı bir "Arkadaşlar" çemberi kurmak isterim; bir oyuncu olarak ise sadece büyük bir kod girip "Hoş geldin Ayşe Hanım" görmek isterim, böylece hiçbir form doldurmadan ilk yapboza ulaşırım.
 
 ### Kabul kriterleri
-- [ ] **Senaryo: Rol ekranı** · Verilen ilk açılış · Eğer RoleGate görünürse · O zaman iki büyük kart (≥ 160 px yüksek): "Yapboz çözeceğim" ve "Yapboz göndereceğim"; altında küçük "Kodum var" bağlantısı; başka hiçbir şey.
-- [ ] **Senaryo: Aile kurma** · Verilen "Göndereceğim" seçildi · Eğer gönderen kendi adını ve alıcının adını ("Kime gönderiyorsun?") girerse · O zaman `families/{id}` oluşur, gönderen üye olur ve 6 karakterli kod (ABCDEFGHJKLMNPQRSTUVWXYZ23456789 alfabesi, 7 gün geçerli) + `https://aileyapbozu.app/j/{kod}` linki gösterilir; "Annenin telefonuna kur" düğmesi link + mağaza adresini paylaşır.
-- [ ] **Senaryo: Kod girişi (oyuncu)** · Verilen "Çözeceğim" seçildi · Eğer kod 6 haneli büyük klavyeden girilirse (harf tuşları ≥ 88 px) · O zaman `joinFamily` çağrılır, oyuncu `role: player` ile aileye eklenir, gönderenin yazdığı ad ("Ayşe") oyuncu adı olur ve "Hoş geldin Ayşe Hanım, Emre seni ekledi" ekranı 1 düğmeyle (Başla) görünür.
-- [ ] **Senaryo: Linkle katılım** · Verilen link tıklandı, uygulama yüklü · Eğer App Link açılırsa · O zaman kod otomatik dolar; uygulama yüklü değilse web sayfası kodu büyük gösterir ve mağazaya yönlendirir; ilk açılışta pano kod kalıbına uyuyorsa alan önceden doldurulur.
-- [ ] **Senaryo: Geçersiz kod** · Verilen süresi dolmuş ya da yanlış kod · Eğer girilirse · O zaman "Bu kod işe yaramadı. Emre'den yeni kod iste." (gönderen adı biliniyorsa) ve alan temizlenmez.
-- [ ] **Senaryo: İkinci gönderen** · Verilen ailede 1 oyuncu + 1 gönderen · Eğer başka biri aynı kodla "Göndereceğim" diye katılırsa · O zaman `role: sender` olarak eklenir; ücretsiz katmanda 3. üyeden sonra "Aile Planı ile 5 kişi" mesajı ve katılım reddi.
-- [ ] **Senaryo: Yeniden katılım** · Verilen oyuncu uygulamayı sildi ve yeniden kurdu · Eğer gönderen yeni kod üretip oyuncu girerse · O zaman eski oyuncu kaydı (`displayName` eşleşmesi + gönderen onayı) yeni uid ile birleştirilir ve açılmamış yapbozlar yeni uid'ye aktarılır.
+- [ ] **Senaryo: Rol ekranı** · Verilen ilk açılış · Eğer RoleGate görünürse · O zaman iki büyük kart (≥ 160 px yüksek): "Yapboz çözeceğim" ve "Yapboz göndereceğim"; altında küçük "Kodum var" bağlantısı; başka hiçbir şey. Seçim cihazın hangi ana ekranla açılacağını belirler; çember içi rol üyelikte tutulur.
+- [ ] **Senaryo: Çember kurma** · Verilen "Göndereceğim" seçildi · Eğer gönderen kendi adını, çember adını ve simgesini (öneri çipleri: "Aile 👨‍👩‍👧", "Arkadaşlar 🎒", "Komşular 🏡"; tür çipten gelir, serbest ad `other`) ve ilk alıcının adını ("Kime gönderiyorsun?") girerse · O zaman `circles/{id}` oluşur, gönderen `owner` + `sender` olur ve 6 karakterli kod (ABCDEFGHJKLMNPQRSTUVWXYZ23456789 alfabesi, 7 gün geçerli) + `https://aileyapbozu.app/j/{kod}` linki gösterilir; "Annenin telefonuna kur" (aile) / "Arkadaşına gönder" (arkadaş) düğmesi link + mağaza adresini paylaşır.
+- [ ] **Senaryo: Kod girişi (oyuncu)** · Verilen "Çözeceğim" seçildi · Eğer kod 6 haneli büyük klavyeden girilirse (harf tuşları ≥ 88 px) · O zaman `joinCircle` çağrılır, oyuncu o çembere `roles: ["player"]` ile eklenir, gönderenin yazdığı ad ("Ayşe") oyuncu adı olur ve "Hoş geldin Ayşe Hanım, Emre seni **Aile** çemberine ekledi" ekranı 1 düğmeyle (Başla) görünür.
+- [ ] **Senaryo: İkinci çembere katılma** · Verilen Ayşe "Aile" çemberinde · Eğer komşusunun "Komşular" kodunu Ayarlar > "Kodum var" ya da ana ekrandaki küçük "Kod gir" ile girerse · O zaman ikinci çembere katılır; ana ekran değişmez, yeni çemberden gelen yapbozlar aynı listede "Komşular · Fatma'dan" etiketiyle görünür. Oyuncuya çember seçtirilmez.
+- [ ] **Senaryo: Arkadaş çemberi rolleri** · Verilen `type: friends` çember · Eğer biri kodla katılırsa · O zaman varsayılan `roles: ["player","sender"]` (herkes gönderir ve çözer); aile çemberinde kodla katılan "Çözeceğim / Göndereceğim" sorusunu görür (kod sahibinin cihazındaki seçime göre önceden seçili).
+- [ ] **Senaryo: Gönderenin çemberleri** · Verilen gönderen 2 çember kurmuş · Eğer SenderHome açılırsa · O zaman üstte çember çipleri (ad + simge + üye sayısı) ve "+ Yeni çember"; ücretsiz katmanda kendi kurduğu 3. çemberde "Aile Planı ile sınırsız çember" kartı ve kurma reddi (sunucuda da). Başkasının çemberine katılmak sınırsız.
+- [ ] **Senaryo: Linkle katılım** · Verilen link tıklandı, uygulama yüklü · Eğer App Link açılırsa · O zaman kod otomatik dolar ve katılım ekranı çember adını gösterir ("Komşular çemberine katıl"); uygulama yüklü değilse web sayfası kodu büyük gösterir ve mağazaya yönlendirir; ilk açılışta pano kod kalıbına uyuyorsa alan önceden doldurulur.
+- [ ] **Senaryo: Geçersiz kod** · Verilen süresi dolmuş ya da yanlış kod · Eğer girilirse · O zaman "Bu kod işe yaramadı. Emre'den yeni kod iste." (gönderen adı biliniyorsa) ve alan temizlenmez. Zaten üyesi olunan çemberin kodu girilirse "Zaten bu çemberdesin" ve o çembere gidilir.
+- [ ] **Senaryo: Üye sınırı** · Verilen ücretsiz çemberde 3 üye · Eğer 4. kişi aynı kodla katılmak isterse · O zaman katılım reddedilir; katılan tarafa "Bu çember dolu, Emre'ye haber verdik" ve çember sahibine "Aile Planı ile 5 kişi" kartı; çember sahibinin planı varsa sınır 5.
+- [ ] **Senaryo: Yeniden katılım** · Verilen oyuncu uygulamayı sildi ve yeniden kurdu · Eğer gönderen yeni kod üretip oyuncu girerse · O zaman eski oyuncu kaydı (`displayName` eşleşmesi + gönderen onayı) yeni uid ile birleştirilir; oyuncunun diğer çemberleri de aynı birleştirmeyle (her çemberin sahibi kendi onayını verir ya da oyuncu her kodu yeniden girer) geri gelir; açılmamış yapbozlar yeni uid'ye aktarılır.
 
 ### Teknik görevler (Unity/C#)
-- [ ] `FamilyService`: `CreateFamily(senderName, receiverName)`, `Join(code, role)`, `CurrentFamily` önbelleği (Firestore snapshot listener), `AppState.role` kalıcılığı (PlayerPrefs + `users/{uid}.role`).
-- [ ] Cloud Function `joinFamily(code, role, displayName?)`: `invites/{code}` doğrulama (expiresAt, familyId, maxUses), üye sayısı/plan kontrolü, `families.members` arrayUnion, `users/{uid}` güncelleme; `createInvite` (gönderen tarafı; aynı aile için aktif kod tekrar kullanılır).
+- [ ] `CircleService`: `CreateCircle(ownerName, circleName, emoji, type, firstReceiverName)`, `Join(code, roles)`, `MyCircles` (Firestore `circles where memberIds array-contains me` listener), `RolesIn(circleId)`; `AppState` cihaz rolü kalıcılığı (PlayerPrefs).
+- [ ] Cloud Function `createCircle`: ücretsiz katmanda kendi kurduğu çember sayısı ≤ 2 kontrolü (`users/{uid}.plan`), `circles` + `members/{uid}` yazımı, `users.circleIds` arrayUnion.
+- [ ] Cloud Function `joinCircle(code, roles, displayName?)`: `invites/{code}` doğrulama (expiresAt, circleId, maxUses), üye sayısı/sahip planı kontrolü (3 / 5), `members/{uid}` + `memberIds`/`memberCount` transaction, `users/{uid}.circleIds` arrayUnion; `createInvite` (yalnızca `sender` rolü; aynı çember için aktif kod tekrar kullanılır).
 - [ ] `InviteCode`: alfabe, 6 karakter, çakışma kontrolü sunucuda; `RegexInviteDetector` pano kontrolü (tam eşleşme: 6 karakter, yalnızca A–Z ve 2–9; yalnızca ilk açılışta ve kullanıcı dokunuşuyla).
-- [ ] Android App Links (`assetlinks.json`) ve iOS Universal Links için `aileyapbozu.app/j/*`; statik web sayfası (GitHub Pages) kod + mağaza linkleri.
+- [ ] Android App Links (`assetlinks.json`) ve iOS Universal Links için `aileyapbozu.app/j/*`; statik web sayfası (GitHub Pages) kod + çember adı yok (gizlilik) + mağaza linkleri.
 - [ ] `RoleGate` UI: iki kart, büyük klavye (`BigKeypad` prefab; 60+ sisteminin ilk bileşeni, 8. story genişletir), karşılama ekranı; TTS "Hoş geldin Ayşe Hanım" (6. story servisi hazırsa).
-- [ ] Paylaşım: Core `ShareService` ile metin: "Annem için Aile Yapbozu kurdum. Kod: ABC234 · {link}".
-- [ ] Yeniden katılım birleştirme: `mergeMember` Cloud Function, gönderen tarafında onay kartı ("Ayşe yeniden katıldı, eski kayıtla birleştirilsin mi?").
-- [ ] Emulator testi: kota, süresi dolmuş kod, rol çakışması.
+- [ ] `CreateCircleView` (gönderen teması): ad alanı (en fazla 24 karakter), simge seçici (12 emoji), tür çipleri, ilk alıcı adı; SenderHome çember çipleri.
+- [ ] Paylaşım: Core `ShareService` ile metin; aile: "Annem için Aile Yapbozu kurdum. Kod: ABC234 · {link}", arkadaş: "Sana bir yapboz göndermek istiyorum, Komşular çemberine katıl. Kod: ABC234 · {link}".
+- [ ] Yeniden katılım birleştirme: `mergeMember` Cloud Function, çember sahibi tarafında onay kartı ("Ayşe yeniden katıldı, eski kayıtla birleştirilsin mi?").
+- [ ] Emulator testi: üye sınırı, kurma sınırı, süresi dolmuş kod, zaten üye, iki çembere üyelik.
 
 ### Analitik
 - `role_selected` {role: string} — kartla seçildiğinde
-- `family_created` {family_id_hash: string} — aile oluştuğunda
-- `invite_created` {via: "share"|"screen"} · `invite_accepted` {role: string, via: "code"|"link"|"clipboard", age_h: int} — Kapı metriği: `invite_accepted / invite_created ≥ %40`
+- `circle_created` {circle_id_hash: string, circle_type: string, owned_count: int} — çember oluştuğunda
+- `invite_created` {via: "share"|"screen", circle_type: string} · `invite_accepted` {role: string, via: "code"|"link"|"clipboard", age_h: int, circle_type: string, circles_after: int} — Kapı metriği: `invite_accepted / invite_created ≥ %40`
 
 ### Notlar
-- Gerçek dünya varsayımı: davetlerin çoğu aynı odada, çocuk annesinin telefonuna kurarken girilir; bu yüzden kod ekranı yazdırılabilir büyüklükte (48 px) ve link ikincil.
-- Gönderen kendi adını girer; oyuncunun adını da gönderen girer (oyuncu klavye kullanmaz). Hitap ("Hanım/Bey") TR'de seçimlik, EN'de yok.
-- Açık soru: oyuncu "Çözeceğim" seçip kodu yoksa ne görür? Karar: "Henüz kodun yok mu? Şimdilik günün yapbozunu çöz" → 13. story ekranı; kod isteme oyuncuya yüklenmez.
+- Gerçek dünya varsayımı: aile davetlerinin çoğu aynı odada, çocuk annesinin telefonuna kurarken girilir; bu yüzden kod ekranı yazdırılabilir büyüklükte (48 px) ve link ikincil. Arkadaş davetleri çoğunlukla linkle gelir.
+- Gönderen kendi adını girer; oyuncunun adını da gönderen girer (oyuncu klavye kullanmaz). Hitap ("Hanım/Bey") TR'de seçimlik, EN'de yok. Ad çember başınadır (Ayşe bir çemberde "Anneannem", diğerinde "Ayşe" olabilir).
+- Karar (2026-10-16): çember kapalıdır; çember adı davet sayfasında gösterilmez, yalnız uygulama içinde. Herkese açık çember, arama ve keşfet kapsam dışı.
+- Açık soru kapandı: oyuncu "Çözeceğim" seçip kodu yoksa "Henüz kodun yok mu? Şimdilik günün yapbozunu çöz" → 13. story ekranı; kod isteme oyuncuya yüklenmez.
 
 ## STORY: Aile Yapbozu 4: Fotoğraftan parça üretimi: 3×3/4×4/5×5 grid ve tab-boşluk maskeleri
 labels: tema:cekirdek, P1, efor:M
@@ -349,7 +361,7 @@ Bir oyuncu olarak son parçayı yerleştirince fotoğrafın bütünleşip netle�
 - [ ] "Bitirdiklerin" listesi veri kaynağı: `status == completed` ve `receiverId == me`, son 20 (8. story UI).
 
 ### Analitik
-- `puzzle_completed` {puzzle_id_hash: string, pieces: int, duration_s: int, hints: int, source: "family"|"pack"|"daily", voice: bool} — tamamlanınca
+- `puzzle_completed` {puzzle_id_hash: string, pieces: int, duration_s: int, hints: int, source: "circle"|"pack"|"daily", circle_type: string|null, voice: bool} — tamamlanınca
 - `voice_played` {replay: bool, sec: int} · `thanks_sent` — düğmelerde
 
 ### Notlar
@@ -370,8 +382,8 @@ Bir 60+ oyuncu olarak her ekranda büyük yazı, büyük düğme, tek anlaşıl�
 
 ### Kabul kriterleri
 - [ ] **Senaryo: Tema sabitleri** · Verilen `BigCalmTheme` · Eğer herhangi bir oyuncu ekranı çizilirse · O zaman gövde metni ≥ 22 px (varsayılan 24), başlık 32–36 px, düğme etiketi 26 px bold, tüm etkileşimli hedefler ≥ 88×88 px, metin/zemin kontrastı ≥ 4,5:1 (gövde 7:1), tek vurgu rengi `#0E7C86`, kırmızı yalnızca hata; otomatik denetim (`ThemeLint` Editor aracı) ihlal listesi boş.
-- [ ] **Senaryo: Ana ekran** · Verilen oyuncu, 1 yeni yapboz · Eğer PlayerHome açılırsa · O zaman üstte "Günaydın Ayşe Hanım" (36 px, saate göre selam), gönderen avatarı + "Emre'den yeni yapboz" kartı (fotoğraf bulanık önizleme 40 px blur, zorluk etiketi "9 parça"), tek birincil düğme ÇÖZ (tam genişlik, 72 px), altında "Süre yok · Reklam yok" satırı (22 px, soluk); en altta iki ikincil kart: "Bitirdiklerin" ve "Hazır yapbozlar"; Ayarlar dişlisi sağ üst 88 px.
-- [ ] **Senaryo: Birden fazla yapboz** · Verilen 3 yeni yapboz · Eğer PlayerHome açılırsa · O zaman en yeni kart büyük, diğerleri altında liste (her satır 96 px, gönderen adı + "2 gün önce"); hepsi tek dokunuşla açılır.
+- [ ] **Senaryo: Ana ekran** · Verilen oyuncu, 1 yeni yapboz · Eğer PlayerHome açılırsa · O zaman üstte "Günaydın Ayşe Hanım" (36 px, saate göre selam), gönderen avatarı + "Emre'den yeni yapboz" kartı ve küçük çember etiketi ("Aile 👨‍👩‍👧", 22 px, soluk; oyuncu tek çemberdeyse gizli) (fotoğraf bulanık önizleme 40 px blur, zorluk etiketi "9 parça"), tek birincil düğme ÇÖZ (tam genişlik, 72 px), altında "Süre yok · Reklam yok" satırı (22 px, soluk); en altta iki ikincil kart: "Bitirdiklerin" ve "Hazır yapbozlar"; Ayarlar dişlisi sağ üst 88 px.
+- [ ] **Senaryo: Birden fazla yapboz** · Verilen 3 yeni yapboz · Eğer PlayerHome açılırsa · O zaman en yeni kart büyük, diğerleri altında liste (her satır 96 px, gönderen adı + çember etiketi + "2 gün önce"); farklı çemberlerden gelenler aynı listede tarihe göre; çember sekmesi ya da filtresi yok; hepsi tek dokunuşla açılır.
 - [ ] **Senaryo: Yapboz yok** · Verilen hiç yapboz gelmemiş · Eğer PlayerHome açılırsa · O zaman "Henüz yapboz gelmedi" + "Hazır yapbozlardan birini çöz" tek düğme; boş ekran yok.
 - [ ] **Senaryo: Tablet yatay** · Verilen 10" tablet yatay · Eğer Puzzle açılırsa · O zaman tahta solda (ekran yüksekliğinin %90'ı), tepsi sağda dikey sütun (160 px), İPUCU GÖSTER sağ altta; dikeyde telefon düzeni ölçeklenir (tepsi altta 140 px).
 - [ ] **Senaryo: Sistem yazı boyutu** · Verilen Android "En büyük" yazı boyutu · Eğer ekranlar çizilirse · O zaman metinler bir kademe daha büyür (`LargeTextMode` +4 px), hiçbir düğme etiketi kırpılmaz ve hiçbir düğme ekran dışına taşmaz (ScrollRect ile).
@@ -383,7 +395,7 @@ Bir 60+ oyuncu olarak her ekranda büyük yazı, büyük düğme, tek anlaşıl�
 - [ ] `LargeButton` (uGUI Button üstüne: min boyut zorunluluğu, 400 ms debounce, basılı durumu %96 ölçek ya da renk koyulaşması, `Haptics.Light`), `LargeCard`, `LargeListRow` prefab'ları.
 - [ ] `ThemeLint` Editor aracı: sahnedeki tüm `Selectable` boyutlarını, TMP boyutlarını ve kontrastı (WCAG formülü) tarar, Console'a rapor; CI'da Edit Mode testi olarak koşar.
 - [ ] `ResponsiveLayout`: `device_class` (en kısa kenar ≥ 600 dp → tablet) ve yönelime göre `LayoutGroup` anahtarlama; Puzzle için iki prefab varyantı değil, aynı prefab + `LayoutProfile` SO.
-- [ ] `PlayerHome` sahnesi: `GreetingView` (saate göre TR/EN selam), `PuzzleInboxView` (Firestore listener `receiverId == me && status != completed`, `createdAt desc`), `CompletedListView`, `PacksEntryCard`; önizleme blur (`Texture2D` 64 px küçültme + Gaussian, blur çözüm görünmesin diye).
+- [ ] `PlayerHome` sahnesi: `GreetingView` (saate göre TR/EN selam), `PuzzleInboxView` (Firestore listener `receiverId == me && status != completed`, `createdAt desc`; tüm çemberler tek sorgu, çember adı/simgesi `CircleService.MyCircles` önbelleğinden), `CompletedListView`, `PacksEntryCard`; önizleme blur (`Texture2D` 64 px küçültme + Gaussian, blur çözüm görünmesin diye).
 - [ ] Core `LargeTextMode` ile `BigCalmTheme` kademe bağlantısı; `ReduceMotion` okunur.
 - [ ] Canvas: tek `Canvas` (Screen Space Overlay) + `CanvasScaler` match 0,5; Safe Area.
 - [ ] Erişilebilirlik: Android TalkBack için uGUI'de `AccessibilityNode` yok; yerine her düğmede TTS "dokununca etiketi söyle" seçeneği Ayarlar'da (20. story), bu story'de altyapı (`SpeakOnFocus`).
@@ -413,15 +425,15 @@ Bir gönderen olarak galeriden bir fotoğraf seçip (gerekirse kadrajlayıp) san
 - [ ] **Senaryo: Küçültme** · Verilen 4032×3024, 3,8 MB HEIC/JPEG · Eğer seçilirse · O zaman istemcide EXIF yönelimi düzeltilir, uzun kenar 1024 px'e küçültülür, JPEG q80 olarak kodlanır (≈ 150–300 KB), EXIF (konum dahil) temizlenir; işlem < 1,5 sn orta sınıf cihazda.
 - [ ] **Senaryo: Kadraj** · Verilen en-boy oranı 0,6–1,7 dışı (panorama) · Eğer seçilirse · O zaman `CropView` açılır: oran 4:3 / 3:4 / 1:1 seçimi ve parmakla kaydırma; içindekiler için kadraj isteğe bağlı ("Kadrajla" ikincil düğme).
 - [ ] **Senaryo: Önizleme** · Verilen küçültülmüş fotoğraf · Eğer adım 1 çizilirse · O zaman fotoğraf büyük önizlemede, "Değiştir" küçük bağlantı, "Devam" birincil düğme; fotoğraf seçilmeden Devam pasif.
-- [ ] **Senaryo: Yükleme** · Verilen GÖNDER'e basıldı (11. story) · Eğer yükleme başlarsa · O zaman `families/{fid}/puzzles/{pid}/photo.jpg` Storage'a `contentType image/jpeg` ile gider, ilerleme çubuğu, 3 deneme (üstel bekleme 1/2/4 sn), başarısızlıkta taslak korunur.
-- [ ] **Senaryo: Uygunsuz içerik uyarısı** · Verilen adım 1 ilk kullanım · Eğer fotoğraf seçildiyse · O zaman bir kez "Fotoğraftaki kişilerin rızası sende olsun; çocuk fotoğrafları yalnızca ailenle paylaşılır" bilgi satırı (15. story metni) görünür, engellemez.
+- [ ] **Senaryo: Yükleme** · Verilen GÖNDER'e basıldı (11. story) · Eğer yükleme başlarsa · O zaman `circles/{cid}/puzzles/{pid}/photo.jpg` Storage'a `contentType image/jpeg` ile gider, ilerleme çubuğu, 3 deneme (üstel bekleme 1/2/4 sn), başarısızlıkta taslak korunur.
+- [ ] **Senaryo: Uygunsuz içerik uyarısı** · Verilen adım 1 ilk kullanım · Eğer fotoğraf seçildiyse · O zaman bir kez "Fotoğraftaki kişilerin rızası sende olsun; fotoğraf yalnızca seçtiğin çemberle paylaşılır" bilgi satırı (15. story metni) görünür, engellemez.
 
 ### Teknik görevler (Unity/C#)
 - [ ] `PhotoPicker` eklentisi: Android `PickVisualMedia` (AndroidX Activity) ve geri uyumlu intent; iOS `PHPicker`; dönüş: geçici dosya yolu; `NativeGallery` paketi değerlendirilir (karar: kendi ince eklenti, izin istememek için).
 - [ ] `PhotoDownscaler.Process(path) → byte[] jpeg`: EXIF okuma (küçük `ExifReader`), döndürme, `Texture2D` yeniden örnekleme (bilinear, 2 adımda), `EncodeToJPG(80)`; büyük dokuyu hemen `Destroy`; HEIC için Android'de `ImageDecoder` üzerinden bitmap (eklenti).
 - [ ] `CropView`: oran seçimi, `RectTransform` kaydırma, sonuç `GetPixels` kırpma.
 - [ ] `UploadService.Upload(path, bytes, contentType, IProgress<float>)`: Firebase Storage `PutBytesAsync`, yeniden deneme, iptal.
-- [ ] `SendDraft` modeli: `{photoLocalPath, grid, audioLocalPath, audioSec, note, receiverId}` yerel JSON; uygulama kapanırsa taslak kalır.
+- [ ] `SendDraft` modeli: `{circleId, receiverId, photoLocalPath, grid, audioLocalPath, audioSec, note}` yerel JSON; uygulama kapanırsa taslak kalır.
 - [ ] Bellek: 2 GB cihazda 12 MP fotoğraf yükleme için `Texture2D` yerine Android tarafında `BitmapFactory.inSampleSize` ile küçültülmüş okuma (eklentide), Unity'ye ≤ 2048 px gelir.
 - [ ] Gönderen tarafı tema: aynı `BigCalmTheme` ama "M" kademe (22 px gövde, 64 px düğme) — gönderen 30–50 yaş, yine sade.
 
@@ -447,7 +459,7 @@ Bir gönderen olarak annemin geçmiş performansına göre önerilen zorluğu te
 
 ### Kabul kriterleri
 - [ ] **Senaryo: Zorluk kartları** · Verilen adım 2 · Eğer çizilirse · O zaman üç kart: Kolay (3×3 · 9 parça), Orta (4×4 · 16), Zor (5×5 · 25); her kartta fotoğrafın o grid'e bölünmüş küçük önizlemesi; biri "Önerilen" rozetli.
-- [ ] **Senaryo: Öneri kuralı** · Verilen oyuncunun son 5 tamamlanan yapbozu · Eğer öneri hesaplanırsa · O zaman son 3'ün ortalama süresi mevcut zorlukta < 6 dk ve ipucu ≤ 2 ise bir üst zorluk önerilir, > 15 dk ya da ipucu ≥ 6 ise bir alt, aksi halde aynı; hiç veri yoksa Kolay; kartta "Annen son yapbozu 4 dakikada bitirdi" açıklaması (süre gönderene görünür, oyuncuya değil).
+- [ ] **Senaryo: Öneri kuralı** · Verilen oyuncunun son 5 tamamlanan yapbozu · Eğer öneri hesaplanırsa · O zaman son 3'ün ortalama süresi mevcut zorlukta < 6 dk ve ipucu ≤ 2 ise bir üst zorluk önerilir, > 15 dk ya da ipucu ≥ 6 ise bir alt, aksi halde aynı; hiç veri yoksa Kolay; kartta "Annen son yapbozu 4 dakikada bitirdi" açıklaması (alıcının o çemberdeki adıyla; süre gönderene görünür, oyuncuya değil). İstatistik alıcı başınadır, çemberden bağımsız (aynı oyuncunun tüm çemberlerdeki tamamlamaları).
 - [ ] **Senaryo: Kayıt** · Verilen adım 3 · Eğer "Kaydet" düğmesine basılı tutulursa (ya da dokun-başlat/dokun-bitir, Ayarlar'da seçilebilir) · O zaman mikrofon izni (ilk kez) istenir, kayıt başlar, büyük sayaç 0:00 → 0:30, 12 sn altında bırakılırsa "Biraz daha uzun söyle" uyarısı ama kabul; 30 sn'de otomatik durur.
 - [ ] **Senaryo: Dinle ve yeniden kaydet** · Verilen kayıt tamamlandı · Eğer "Dinle" basılırsa · O zaman kendi kaydı çalar; "Yeniden kaydet" eskiyi siler; "Mesajsız gönder" küçük bağlantı (izin verilir, uyarı: "Annen bitince sesini duymayı sever").
 - [ ] **Senaryo: Dosya** · Verilen 30 sn kayıt · Eğer kodlanırsa · O zaman AAC-LC, mono, 32 kbps, 22,05 kHz, M4A kapsayıcı, ≤ 500 KB (30 sn ≈ 120 KB); `audioSec` tam saniye.
@@ -485,25 +497,25 @@ milestone: MVP
 Bir gönderen olarak GÖNDER'e bastıktan sonra yapbozun annemin telefonuna ulaştığını, açıldığını ve bitirildiğini (kaç dakikada, teşekkür etti mi) görmek isterim, böylece aramadan da bağ kurduğumu bileyim.
 
 ### Kabul kriterleri
-- [ ] **Senaryo: Özet ve gönder** · Verilen adım 5 · Eğer çizilirse · O zaman fotoğraf, zorluk, ses süresi ("18 sn"), not, alıcı ("Annem · Ayşe"), ücretsiz kota satırı ("Bu hafta 1/2") ve tam genişlik GÖNDER; basılınca fotoğraf + ses sırayla yüklenir (ilerleme), sonra `puzzles/{id}` `status: sent` yazılır; toplam < 8 sn 4G'de.
+- [ ] **Senaryo: Özet ve gönder** · Verilen adım 5 · Eğer çizilirse · O zaman fotoğraf, zorluk, ses süresi ("18 sn"), not, çember + alıcı ("Aile 👨‍👩‍👧 · Annem"), ücretsiz kota satırı ("Bu hafta 1/2") ve tam genişlik GÖNDER; basılınca fotoğraf + ses sırayla yüklenir (ilerleme), sonra `puzzles/{id}` `status: sent` yazılır; toplam < 8 sn 4G'de.
 - [ ] **Senaryo: Atomiklik** · Verilen ses yüklemesi başarısız · Eğer 3 deneme de düşerse · O zaman Firestore belgesi yazılmaz, yüklenen fotoğraf silinir, taslak kalır, "Gönderilemedi, tekrar dene" (bağlantı mesajı 60+ dilinde değil; gönderen normal dil).
-- [ ] **Senaryo: Gönderen ana ekranı** · Verilen 4 gönderilmiş yapboz · Eğer SenderHome açılırsa · O zaman üstte "Yeni yapboz gönder" birincil düğme, altında liste: her satır fotoğraf küçük resmi + durum rozeti (Gönderildi / Açıldı / Bitirdi · 14 dk ♥) + tarih; Aile Planı kartı (14. story) listeden sonra.
+- [ ] **Senaryo: Gönderen ana ekranı** · Verilen 4 gönderilmiş yapboz, 2 çember · Eğer SenderHome açılırsa · O zaman üstte çember çipleri ("Tümü" varsayılan + her çember; 3. story) ve "Yeni yapboz gönder" birincil düğme, altında liste: her satır fotoğraf küçük resmi + alıcı + çember etiketi + durum rozeti (Gönderildi / Açıldı / Bitirdi · 14 dk ♥) + tarih; çip seçilince liste o çembere süzülür; Aile Planı kartı (14. story) listeden sonra. Gönderen aynı zamanda bir çemberde oyuncuysa üstte "Sana gelenler (2)" kartı oyuncu gelen kutusunu açar.
 - [ ] **Senaryo: Canlı durum** · Verilen SenderHome açık · Eğer oyuncu yapbozu bitirirse · O zaman satır 3 sn içinde "Bitirdi" olur (Firestore listener); bildirim 12. story.
-- [ ] **Senaryo: Alıcı seçimi** · Verilen ailede 2 oyuncu (19. story) ya da 1 · Eğer Send başlarsa · O zaman tek oyuncuda adım atlanır; birden fazlaysa adım 0'da büyük avatar kartları.
+- [ ] **Senaryo: Çember ve alıcı seçimi** · Verilen gönderenin `sender` rolü olan çemberleri · Eğer Send başlarsa · O zaman adım 0a çember kartları (ad + simge; tek çemberde atlanır, SenderHome'da çip seçiliyse o çember önceden seçili), adım 0b o çemberdeki `player` rollü üyelerin büyük avatar kartları (kendisi hariç; tek oyuncuda atlanır). v1'de tek alıcı; "herkese gönder" kapsam dışı.
 - [ ] **Senaryo: Silme** · Verilen gönderilmiş yapboz · Eğer gönderen satırı uzun basmadan "…" menüsünden "Sil" seçerse · O zaman onay, sonra Firestore + Storage + oyuncu cihaz önbelleği (bir sonraki senkronda) silinir; oyuncu tarafında aynı menü "Bitirdiklerin" listesinde.
 - [ ] **Senaryo: Açıldı durumu** · Verilen oyuncu yapboza ilk kez dokundu · Eğer Puzzle açılırsa · O zaman `status: opened`, `openedAt` yazılır (bir kez).
 
 ### Teknik görevler (Unity/C#)
 - [ ] `SendService.SendAsync(SendDraft) → Result`: sıra (photo → voice → doc), hata geri alma (`DeleteAsync` yüklenenler), `IProgress`, iptal; puzzle id istemcide üretilir (`Guid`), Storage yolları ona göre.
-- [ ] Cloud Function `onPuzzleCreated` (Firestore trigger): alan doğrulama (pieces ∈ {9,16,25}, note ≤ 80, audioSec ≤ 30), `families.weekSends` artırma (14. story kota kontrolü burada; kota aşımı → belge `status: rejected` + Storage temizliği), FCM (12).
+- [ ] Cloud Function `onPuzzleCreated` (Firestore trigger): alan doğrulama (pieces ∈ {9,16,25}, note ≤ 80, audioSec ≤ 30, gönderen ve alıcı aynı çemberde), `users/{sender}.weekSends` artırma (14. story kota kontrolü burada; kota aşımı → belge `status: rejected` + Storage temizliği), FCM (12).
 - [ ] Cloud Function `onPuzzleCompleted` (`status` → completed): gönderene FCM, `users/{sender}.stats` güncelleme (12 ve 16).
 - [ ] `SenderHome` UI: liste (`LargeListRow` M kademe), durum rozeti, "…" menü (Sil, Tekrar gönder — aynı fotoğrafla yeni yapboz), Aile Planı kartı yeri.
-- [ ] `PuzzleRepository` (istemci): Firestore sorguları `senderId == me` ve `receiverId == me`, listener yönetimi, çevrimdışı önbellek.
+- [ ] `PuzzleRepository` (istemci): Firestore sorguları `senderId == me` ve `receiverId == me` (çember filtresi istemcide `circleId` ile), listener yönetimi, çevrimdışı önbellek.
 - [ ] Silme: istemci `DeletePuzzleAsync` (belge) + Cloud Function `onPuzzleDeleted` Storage dosyalarını siler (istemci Storage silme yetkisi gerekmez).
 - [ ] Emulator testleri: doğrulama reddi, kota, silme zinciri.
 
 ### Analitik
-- `puzzle_sent` {puzzle_id_hash: string, pieces: int, voice: bool, note: bool, upload_ms: int, week_sends: int, plan: string} — belge yazılınca — Kapı metriği: aktif aile başına haftalık ≥ 2
+- `puzzle_sent` {puzzle_id_hash: string, pieces: int, voice: bool, note: bool, upload_ms: int, week_sends: int, plan: string, circle_type: string} — belge yazılınca — Kapı metriği: aktif çember başına haftalık ≥ 2
 - `puzzle_send_failed` {stage: "photo"|"voice"|"doc", code: string}
 - `puzzle_opened` {age_h: int} — oyuncu ilk açtığında
 - `puzzle_deleted` {by: "sender"|"player", status: string}
@@ -525,7 +537,7 @@ Bir oyuncu olarak torunum yapboz gönderince telefonumda büyük, net bir bildir
 
 ### Kabul kriterleri
 - [ ] **Senaryo: Token kaydı** · Verilen giriş yapılmış kullanıcı · Eğer Bootstrap tamamlanırsa · O zaman FCM token `users/{uid}.fcmTokens[]`'a eklenir (en fazla 5, eskisi düşer); Android 13+ `POST_NOTIFICATIONS` izni oyuncu tarafında ilk yapboz kartı göründükten sonra ("Yeni yapboz gelince haber vereyim mi?" büyük kart), gönderen tarafında ilk gönderimden sonra istenir.
-- [ ] **Senaryo: Yeni yapboz** · Verilen `puzzles/{id}` `status: sent` yazıldı · Eğer `onPuzzleCreated` çalışırsa · O zaman alıcının tüm token'larına "Emre yeni yapboz gönderdi" başlığı, "9 parça · dokun ve çöz" gövdesi, `data: {type: "new_puzzle", puzzleId}`; 10 sn içinde ulaşır (`priority: high`).
+- [ ] **Senaryo: Yeni yapboz** · Verilen `puzzles/{id}` `status: sent` yazıldı · Eğer `onPuzzleCreated` çalışırsa · O zaman alıcının tüm token'larına "Emre yeni yapboz gönderdi" başlığı, "Aile · 9 parça · dokun ve çöz" gövdesi (alıcı tek çemberdeyse çember adı yok), `data: {type: "new_puzzle", puzzleId}`; 10 sn içinde ulaşır (`priority: high`).
 - [ ] **Senaryo: Bitirdi** · Verilen `status: completed` · Eğer `onPuzzleCompleted` çalışırsa · O zaman gönderene "Annen yapbozu bitirdi" (`displayName` ile "Ayşe yapbozu bitirdi" EN'de), gövde "14 dakika · 2 ipucu" ve teşekkür geldiyse ikinci bildirim yerine aynı bildirim güncellenir ("♥ Teşekkür etti"); `collapseKey = puzzleId`.
 - [ ] **Senaryo: Dokunma** · Verilen bildirim · Eğer dokunulursa · O zaman uygulama ilgili ekrana açılır: oyuncu → Puzzle (doğrudan, ana ekranı atlar), gönderen → SenderHome ilgili satır vurgulu; uygulama kapalıyken soğuk başlangıçta da çalışır.
 - [ ] **Senaryo: Uygulama açıkken** · Verilen oyuncu PlayerHome'da · Eğer yeni yapboz gelirse · O zaman sistem bildirimi gösterilmez, kart listesi canlı güncellenir ve TTS "Emre yeni yapboz gönderdi" (Sesli yönlendirme açıksa).
@@ -534,7 +546,7 @@ Bir oyuncu olarak torunum yapboz gönderince telefonumda büyük, net bir bildir
 
 ### Teknik görevler (Unity/C#)
 - [ ] Firebase Messaging Unity SDK; `PushService`: token alma/yenileme (`TokenReceived`), `users/{uid}.fcmTokens` arrayUnion/arrayRemove, izin akışı (Android 13 `POST_NOTIFICATIONS` için eklenti ya da Unity Mobile Notifications izin API'si).
-- [ ] Android bildirim kanalı `family` (önem: yüksek, ses: varsayılan), büyük ikon; `MessageReceived` ön plan işleyicisi (sistem bildirimi bastırma + UI olayı).
+- [ ] Android bildirim kanalı `puzzles` (önem: yüksek, ses: varsayılan), büyük ikon; `MessageReceived` ön plan işleyicisi (sistem bildirimi bastırma + UI olayı).
 - [ ] Derin bağlantı: `data.type` ve `puzzleId` → `SceneFlow.OpenPuzzle(id)`; soğuk başlangıçta `AppState.pendingDeepLink`.
 - [ ] Cloud Functions: `sendToUser(uid, payload)` yardımcı, yerelleştirilmiş metin (alıcının `users.locale`), `collapseKey`, hatalı token temizliği; `onPuzzleCompleted` teşekkür güncellemesi için `thanked` alan tetikleyicisi.
 - [ ] Yerel bildirim yok (MVP); 21. story gönderen hatırlatmasını ekler.
@@ -561,12 +573,12 @@ milestone: MVP
 Bir oyuncu olarak ailemden yapboz gelmediği günlerde de çözecek güzel, büyük fotoğraflar (eski İstanbul, çiçekler, köy hayatı) ve her gün herkese aynı "günün yapbozu" bulmak isterim, böylece uygulama boş kalmasın; davetsiz kuran biri de hemen bir şey çözebilsin.
 
 ### Kabul kriterleri
-- [ ] **Senaryo: Katalog** · Verilen Hazır yapbozlar ekranı · Eğer açılırsa · O zaman 3 paket kartı (Eski İstanbul, Çiçekler, Köy Hayatı), her pakette 12 fotoğraf; "Çiçekler" ücretsiz ve tamamen açık, diğer ikisinde 3 fotoğraf ücretsiz, kalanı Aile Planı rozeti (oyuncu tarafında satın alma yok: "Ailenden Aile Planı istenebilir" tek satır, düğme yok).
+- [ ] **Senaryo: Katalog** · Verilen Hazır yapbozlar ekranı · Eğer açılırsa · O zaman 3 paket kartı (Eski İstanbul, Çiçekler, Köy Hayatı), her pakette 12 fotoğraf; "Çiçekler" ücretsiz ve tamamen açık, diğer ikisinde 3 fotoğraf ücretsiz, kalanı Aile Planı rozeti (oyuncu, sahibi planlı herhangi bir çemberin üyesiyse hepsi açık) (oyuncu tarafında satın alma yok: "Ailenden Aile Planı istenebilir" tek satır, düğme yok).
 - [ ] **Senaryo: Paket yapbozu** · Verilen bir paket fotoğrafı · Eğer seçilirse · O zaman zorluk üç büyük kartla sorulur (son seçim hatırlanır), aynı yapboz motoru; tamamlanınca sesli mesaj yerine fotoğraf hakkında bir satır ("Galata Köprüsü, 1960'lar") ve konfeti.
 - [ ] **Senaryo: Günün yapbozu** · Verilen tarih · Eğer PlayerHome'da "Bugünün yapbozu" kartı açılırsa · O zaman `daily/{yyyy-MM-dd}` fotoğrafı (Remote Config `daily_puzzle_grid` ile zorluk, varsayılan 4×4) herkese aynı; gün değişince yeni; dünkü yarım kaldıysa tamamlanabilir.
 - [ ] **Senaryo: İçerik boyutu** · Verilen 36 fotoğraf · Eğer APK'ya gömülürse · O zaman her biri 1024 px JPEG q75 ≤ 180 KB, toplam ≤ 7 MB; günün yapbozu fotoğrafları Storage'dan (`public/daily/`) indirilir ve 7 gün önbellekte.
 - [ ] **Senaryo: Telif** · Verilen her fotoğraf · Eğer `docs/content/credits.md` okunursa · O zaman kaynak (Wikimedia Commons PD / CC0 / Unsplash lisansı), lisans ve atıf satırı listelenir; CC-BY varsa uygulama içi "Fotoğraf kaynakları" ekranında atıf.
-- [ ] **Senaryo: Davetsiz oyuncu** · Verilen aileye bağlı olmayan oyuncu (3. story) · Eğer PlayerHome açılırsa · O zaman "Bugünün yapbozu" ve "Hazır yapbozlar" kartları görünür; aile kartı "Ailenden kod geldiğinde buraya gir" (küçük, ikincil).
+- [ ] **Senaryo: Davetsiz oyuncu** · Verilen hiçbir çembere bağlı olmayan oyuncu (3. story) · Eğer PlayerHome açılırsa · O zaman "Bugünün yapbozu" ve "Hazır yapbozlar" kartları görünür; kod kartı "Ailenden ya da arkadaşından kod geldiğinde buraya gir" (küçük, ikincil).
 
 ### Teknik görevler (Unity/C#)
 - [ ] `PackCatalog` SO: paketler, fotoğraf listeleri (`Sprite` değil `Texture2D` yolu), açık/kilitli kuralı; Remote Config `packs_free_count` (3).
@@ -598,19 +610,20 @@ milestone: MVP
 Bir gönderen olarak haftada 2 ücretsiz gönderimin nerede bittiğini açıkça görmek ve istersem Aile Planı'na geçmek isterim; bir oyuncu olarak ise hiçbir kotadan, kilitten ya da fiyattan haberdar olmamak isterim.
 
 ### Kabul kriterleri
-- [ ] **Senaryo: Kota sayacı** · Verilen ücretsiz aile, bu hafta 1 gönderim · Eğer Send adım 5 açılırsa · O zaman "Bu hafta 1/2 ücretsiz gönderim · Pazartesi yenilenir" satırı; GÖNDER aktif.
-- [ ] **Senaryo: Kota dolu** · Verilen bu hafta 2 gönderim · Eğer "Yeni yapboz gönder" basılırsa · O zaman akış yine açılır, adım 5'te GÖNDER yerine "Aile Planı ile sınırsız gönder" (birincil) ve "Pazartesi tekrar dene" (ikincil, taslağı saklar); sunucu da `weekSends >= free_weekly_sends` ise belgeyi `rejected` yapar (istemci atlatamaz).
-- [ ] **Senaryo: Hafta anahtarı** · Verilen oyuncunun saat dilimi Europe/Istanbul · Eğer Pazartesi 00:00 geçerse · O zaman `families.weekKey` (`yyyy-Www`) değişir ve `weekSends` 0'dan başlar; saat dilimi `users/{receiver}.tz`'den (cihaz `TimeZoneInfo`), yoksa UTC.
-- [ ] **Senaryo: Yumuşak kart** · Verilen ücretsiz aile · Eğer SenderHome açılırsa · O zaman listenin altında Aile Planı kartı (3 fayda: sınırsız gönderim, 5 üye, tüm paketler; fiyat yerel; "3/5 üye" ilerleme satırı) görünür; kapatılabilir ("Şimdi değil" → 7 gün gizli); her `premium_card_every_n_sends` (5) gönderimde bir kez adım 5'te de görünür; hiçbir yerde tam ekran paywall yok.
-- [ ] **Senaryo: Oyuncu tarafı temiz** · Verilen oyuncu, ücretsiz aile · Eğer tüm oyuncu ekranları gezilirse · O zaman fiyat, abonelik, kota, reklam kelimesi geçmez; kilitli paket yalnızca rozet (13. story).
-- [ ] **Senaryo: Plan aktif** · Verilen `families.plan == "family"` ve `planUntil > now` · Eğer gönderilirse · O zaman kota kontrolü atlanır, kart gizlenir, üye sınırı 5.
+- [ ] **Senaryo: Kota sayacı** · Verilen ücretsiz gönderen, bu hafta tüm çemberlerinde toplam 1 gönderim · Eğer Send adım 5 açılırsa · O zaman "Bu hafta 1/2 ücretsiz gönderim · Pazartesi yenilenir" satırı; GÖNDER aktif.
+- [ ] **Senaryo: Kota dolu** · Verilen bu hafta 2 gönderim · Eğer "Yeni yapboz gönder" basılırsa · O zaman akış yine açılır, adım 5'te GÖNDER yerine "Aile Planı ile sınırsız gönder" (birincil) ve "Pazartesi tekrar dene" (ikincil, taslağı saklar); sunucu da `users/{sender}.weekSends >= free_weekly_sends` ise belgeyi `rejected` yapar (istemci atlatamaz). Kota gönderen başına ve tüm çemberler toplamıdır; yeni çember açmak kotayı artırmaz.
+- [ ] **Senaryo: Hafta anahtarı** · Verilen gönderenin saat dilimi Europe/Istanbul · Eğer Pazartesi 00:00 geçerse · O zaman `users/{sender}.weekKey` (`yyyy-Www`) değişir ve `weekSends` 0'dan başlar; saat dilimi `users/{sender}.tz`'den (cihaz `TimeZoneInfo`), yoksa UTC.
+- [ ] **Senaryo: Yumuşak kart** · Verilen ücretsiz gönderen · Eğer SenderHome açılırsa · O zaman listenin altında Aile Planı kartı (3 fayda: sınırsız gönderim, çember başına 5 üye ve sınırsız çember, tüm paketler; fiyat yerel; seçili çember için "3/5 üye" ilerleme satırı) görünür; kapatılabilir ("Şimdi değil" → 7 gün gizli); her `premium_card_every_n_sends` (5) gönderimde bir kez adım 5'te de görünür; hiçbir yerde tam ekran paywall yok.
+- [ ] **Senaryo: Oyuncu tarafı temiz** · Verilen oyuncu, ücretsiz çemberler · Eğer tüm oyuncu ekranları gezilirse · O zaman fiyat, abonelik, kota, reklam kelimesi geçmez; kilitli paket yalnızca rozet (13. story).
+- [ ] **Senaryo: Plan aktif** · Verilen gönderen planlı (`users/{sender}.plan == "plus"`, `planUntil > now`) ya da yapbozun çemberinin sahibi planlı · Eğer gönderilirse · O zaman kota kontrolü atlanır, kart gizlenir; sahibi planlı çemberde üye sınırı 5, planlı kullanıcının kurabileceği çember sayısı sınırsız.
+- [ ] **Senaryo: Planlı çemberde ücretsiz gönderen** · Verilen Emre'nin planı var, Zeynep "Aile" çemberinde ücretsiz gönderen · Eğer Zeynep "Aile"ye gönderirse · O zaman kota sayılmaz ("Emre'nin planı sayesinde sınırsız"); Zeynep kendi "Arkadaşlar" çemberine gönderirse kendi kotası işler.
 
 ### Teknik görevler (Unity/C#)
-- [ ] `PlanGate` (istemci): `IsFamilyPlan`, `FreeSendsLeft`, `WeekResetsAt`; Firestore `families` listener'dan; Remote Config `free_weekly_sends` (2).
-- [ ] Cloud Function `enforceWeeklyQuota` (`onPuzzleCreated` içinde transaction): `weekKey` hesaplama (alıcı tz, ISO hafta), `weekSends++` ya da `rejected`; `rejected` belgeleri 24 saat sonra `scheduledCleanup` siler.
+- [ ] `PlanGate` (istemci): `HasPlan`, `IsCircleCovered(circleId)` (çember sahibinin planı; `circles.ownerPlanUntil` Cloud Function'ın yazdığı tekrar alanından), `FreeSendsLeft`, `WeekResetsAt`, `CanCreateCircle`; Firestore `users/{me}` ve `circles` listener'larından; Remote Config `free_weekly_sends` (2).
+- [ ] Cloud Function `enforceWeeklyQuota` (`onPuzzleCreated` içinde transaction): `weekKey` hesaplama (gönderen tz, ISO hafta), kapsam kontrolü (gönderen planı ya da çember sahibinin planı), `users/{sender}.weekSends++` ya da `rejected`; `rejected` belgeleri 24 saat sonra `scheduledCleanup` siler.
 - [ ] `QuotaView` (adım 5 satırı), `PremiumCard` prefab (SenderHome + adım 5 varyantı), "Şimdi değil" 7 gün bastırma (PlayerPrefs).
 - [ ] Satın alma düğmesi 18. story'ye bağlanır; MVP'de kart "Yakında" değil, 18 olmadan kart gizli (Remote Config `premium_card_enabled=false`, soft launch build'inde true).
-- [ ] Fiyat metni `IapService.GetLocalizedPrice("family_monthly")`; ürün yoksa "3,99 USD/ay" yedek yazılmaz, kart gizlenir.
+- [ ] Fiyat metni `IapService.GetLocalizedPrice("plus_monthly")`; ürün yoksa "3,99 USD/ay" yedek yazılmaz, kart gizlenir.
 
 ### Analitik
 - `quota_view` {sends_left: int, plan: string} — adım 5'te
@@ -619,7 +632,7 @@ Bir gönderen olarak haftada 2 ücretsiz gönderimin nerede bittiğini açıkça
 
 ### Notlar
 - İlke: ödeyen taraf gönderen; oyuncu hiçbir ekonomik sinyal görmez. Bu, mağaza açıklamasındaki "Reklam yok, satın alma baskısı yok" vaadinin teknik karşılığı.
-- Kota haftalık ve aile başına; iki gönderen aynı kotayı paylaşır (plan tartışması: gönderen başına 2 mi? Karar v1: aile başına; soft launch'ta `quota_blocked` oranına göre).
+- Karar (2026-10-16): kota haftalık ve gönderen başına, tüm çemberler toplamı. Aile başına kota çember modelinde çember açarak çoğaltılabilirdi. Ücretsiz katmanda kişi başına en fazla 2 kendi kurduğu çember, çember başına 3 üye. Eşikler Remote Config: `free_weekly_sends` (2), `free_owned_circles` (2), `free_circle_members` (3), `plan_circle_members` (5).
 
 ## STORY: Aile Yapbozu 15: KVKK/GDPR: aydınlatma, rıza, veri silme ve 90 gün saklama
 labels: tema:backend, P1, efor:M
@@ -633,17 +646,17 @@ milestone: MVP
 Bir gönderen olarak başkalarının (özellikle çocukların) fotoğrafını yüklediğimin farkında olmak ve ne kadar süre saklandığını bilmek; bir oyuncu ya da gönderen olarak tek düğmeyle tüm verimi sildirebilmek isterim, böylece uygulama aileme güvenle önerilebilsin.
 
 ### Kabul kriterleri
-- [ ] **Senaryo: Aydınlatma** · Verilen gönderen rolü ilk kez seçildi · Eğer aile kurma öncesi `ConsentScreen` açılırsa · O zaman kısa aydınlatma (5 madde: ne toplanır — fotoğraf, ses, not, ad, cihaz token'ı; nerede — Firebase (Google), bölge `europe-west`; ne kadar — 90 gün; kim görür — yalnızca aile; haklar — silme) ve "Fotoğraftaki kişilerin rızasını almak senin sorumluluğunda; çocuk fotoğrafları yalnızca ailenle paylaşılır" uyarısı; "Okudum, kabul ediyorum" onay kutusu + 18+ beyanı; kabul olmadan ilerlenmez; tam metin bağlantısı.
-- [ ] **Senaryo: Oyuncu aydınlatma** · Verilen oyuncu rolü · Eğer karşılama ekranı görünürse · O zaman tek paragraf (24 px) "Emre sana fotoğraf ve ses gönderecek; bunlar yalnızca ailende kalır, 90 gün sonra silinir" ve "Tamam" düğmesi; onay kutusu yok (veri sorumluluğu gönderende, oyuncu veri girmez).
-- [ ] **Senaryo: Veri silme** · Verilen Ayarlar > Gizlilik > "Tüm verimi sil" · Eğer onaylanırsa (iki adım, 88 px düğmeler) · O zaman `deleteMyData` çağrılır: kullanıcının gönderdiği ve aldığı tüm yapbozlar (Firestore + Storage), `users/{uid}`, aile üyeliği silinir; aile tek kişi kaldıysa aile belgesi de; işlem < 60 sn, bitince uygulama RoleGate'e döner; Analytics `user_id` için UGS silme isteği `docs/privacy.md`'deki prosedürle.
+- [ ] **Senaryo: Aydınlatma** · Verilen gönderen rolü ilk kez seçildi · Eğer ilk çember kurma ya da ilk gönderim öncesi `ConsentScreen` açılırsa · O zaman kısa aydınlatma (5 madde: ne toplanır — fotoğraf, ses, not, ad, cihaz token'ı; nerede — Firebase (Google), bölge `europe-west`; ne kadar — 90 gün; kim görür — yalnızca seçtiğin çemberin üyeleri; haklar — silme) ve "Fotoğraftaki kişilerin rızasını almak senin sorumluluğunda; arkadaş çemberinde aile dışından kişiler de görür" uyarısı; "Okudum, kabul ediyorum" onay kutusu + 18+ beyanı; kabul olmadan ilerlenmez; tam metin bağlantısı.
+- [ ] **Senaryo: Oyuncu aydınlatma** · Verilen oyuncu rolü · Eğer karşılama ekranı görünürse · O zaman tek paragraf (24 px) "Emre sana fotoğraf ve ses gönderecek; bunlar yalnızca bu çemberde kalır, 90 gün sonra silinir" ve "Tamam" düğmesi; onay kutusu yok (veri sorumluluğu gönderende, oyuncu veri girmez).
+- [ ] **Senaryo: Veri silme** · Verilen Ayarlar > Gizlilik > "Tüm verimi sil" · Eğer onaylanırsa (iki adım, 88 px düğmeler) · O zaman `deleteMyData` çağrılır: kullanıcının gönderdiği ve aldığı tüm yapbozlar (Firestore + Storage), `users/{uid}` ve tüm çember üyelikleri silinir; kullanıcının sahibi olduğu çemberlerde sahiplik en eski `sender` üyeye devredilir, `sender` kalmadıysa çember (ve içindeki yapbozlar) silinir; işlem < 60 sn, bitince uygulama RoleGate'e döner; Analytics `user_id` için UGS silme isteği `docs/privacy.md`'deki prosedürle.
 - [ ] **Senaryo: Otomatik silme** · Verilen `createdAt` 90 günden eski yapboz · Eğer `scheduledCleanup` günlük çalışırsa · O zaman belge ve Storage dosyaları silinir; 83. günde oyuncu tarafında "Bu yapboz 7 gün sonra silinecek" rozeti (tamamlanmış yapbozlar "Bitirdiklerin"de de silinir; albüm SONRA 26).
 - [ ] **Senaryo: Gizlilik ekranı** · Verilen her iki rol · Eğer Ayarlar > Gizlilik açılırsa · O zaman tam aydınlatma metni (TR/EN), "Tüm verimi sil", "Verilerimi indir" (SONRA; v1'de e-posta adresi: `docs/privacy.md`'deki iletişim), üçüncü taraf listesi (Firebase, UGS Analytics, Crashlytics).
-- [ ] **Senaryo: Analitik anonimliği** · Verilen tüm olaylar · Eğer incelenirse · O zaman ad, fotoğraf, ses, not, e-posta, kesin konum yoktur; `puzzle_id_hash` ve `family_id_hash` SHA256 ilk 8 karakter.
+- [ ] **Senaryo: Analitik anonimliği** · Verilen tüm olaylar · Eğer incelenirse · O zaman ad, fotoğraf, ses, not, e-posta, kesin konum yoktur; `puzzle_id_hash` ve `circle_id_hash` SHA256 ilk 8 karakter; çember adı analitiğe gitmez (yalnızca `circle_type`).
 - [ ] **Senaryo: Mağaza beyanı** · Verilen Play veri güvenliği formu · Eğer doldurulursa · O zaman "Fotoğraflar, ses, cihaz kimliği, uygulama etkileşimi; şifreli aktarım; silme talebi mümkün; çocuklara yönelik değil" beyanı ve `docs/privacy.md` ile tutarlı; kategori Puzzle, "Kids" değil, hedef yaş 18+.
 
 ### Teknik görevler (Unity/C#)
 - [ ] `ConsentScreen` (gönderen) ve oyuncu karşılama paragrafı; `users/{uid}.consent {version, acceptedAt}`; sürüm değişince yeniden gösterim.
-- [ ] Cloud Function `deleteMyData` (callable, auth zorunlu): batch silme (Firestore 500'lük partiler), Storage prefix silme, aile üyeliği, FCM token; idempotent; tamamlanınca `users/{uid}` silinir ve Anonymous Auth kullanıcısı `admin.auth().deleteUser`.
+- [ ] Cloud Function `deleteMyData` (callable, auth zorunlu): batch silme (Firestore 500'lük partiler), Storage prefix silme, çember üyelikleri ve sahiplik devri, FCM token; idempotent; tamamlanınca `users/{uid}` silinir ve Anonymous Auth kullanıcısı `admin.auth().deleteUser`.
 - [ ] Cloud Function `scheduledCleanup` (Pub/Sub, günlük 03:00 UTC): 90 gün kuralı, `rejected` 24 saat, yetim Storage dosyaları; `retention_days` Functions config.
 - [ ] Firebase bölge: Firestore ve Storage `europe-west1/eur3` (GDPR; TR için KVKK yurt dışı aktarım — açık rıza metinde).
 - [ ] `PrivacyScreen` UI (60+ tema, kaydırılabilir metin, 24 px), silme onay akışı.
@@ -657,7 +670,7 @@ Bir gönderen olarak başkalarının (özellikle çocukların) fotoğrafını y�
 ### Notlar
 - Hukuki metin şablonu dışarıdan (avukat/şablon hizmeti) alınır; story bunu bloklamaz, placeholder metinle çıkar, soft launch öncesi gerçek metin.
 - Açık soru: VERBİS kaydı (TR) — bireysel geliştirici muafiyet eşiği doğrulanacak.
-- Çocuk fotoğrafı: uygulama çocuk verisi "toplamaz", gönderen aile içi paylaşır; yine de ConsentScreen'de açık uyarı ve "Kids" dışı kategori.
+- Çocuk fotoğrafı: uygulama çocuk verisi "toplamaz", gönderen kapalı çember içinde paylaşır; yine de ConsentScreen'de açık uyarı ve "Kids" dışı kategori.
 - 90 gün kararı: depolama maliyeti + "uygulama albüm değil" konumlandırması; albüm 26 (SONRA, Aile Planı özelliği olarak düşünülür).
 
 ## STORY: Aile Yapbozu 16: Analitik olay şeması ve kapı raporu
@@ -669,20 +682,20 @@ milestone: MVP
 **Öncelik:** P1 · **Efor:** S · **Milestone:** MVP · **Dokunduğu yer:** UGS Analytics olay tanımları, `docs/analytics.md`, SQL raporları, Firestore toplulaştırma (Cloud Function `nightlyStats`)
 
 ### Kullanıcı hikâyesi
-Bir geliştirici olarak soft launch kapısını (davet kabulü, aile başına haftalık gönderim, Aile Planı dönüşümü, 72 saat tamamlama, çökme) tek sorguyla görmek isterim, böylece Büyük Sudoku'ya geçme kararı veriyle verilsin.
+Bir geliştirici olarak soft launch kapısını (davet kabulü, çember başına haftalık gönderim, Aile Planı dönüşümü, 72 saat tamamlama, çökme) tek sorguyla görmek isterim, böylece Büyük Sudoku'ya geçme kararı veriyle verilsin.
 
 ### Kabul kriterleri
-- [ ] **Senaryo: Şema** · Verilen `docs/analytics.md` · Eğer okunursa · O zaman tüm olaylar (app_open, session_start, role_selected, family_created, invite_created, invite_accepted, backend_error, puzzle_generated, piece_snapped, puzzle_resumed, hint_used, tts_availability, puzzle_completed, voice_played, thanks_sent, home_view, ui_text_scale, send_step, photo_selected, difficulty_chosen, voice_recorded, note_written, puzzle_sent, puzzle_send_failed, puzzle_opened, puzzle_deleted, push_permission, push_received, push_opened, pack_view, pack_locked_tap, quota_view, quota_blocked, premium_card_view, premium_card_dismiss, consent_accepted, data_delete_requested, data_delete_done, settings_change, plan_view, plan_purchase, plan_restore) parametre tipleriyle listelidir ve UGS'de tanımlıdır.
-- [ ] **Senaryo: Rol ayrımı** · Verilen her olay · Eğer gönderilirse · O zaman ortak parametre `role: "player"|"sender"|null` ve `family_id_hash` otomatik eklenir (Analytics sarmalayıcısı).
+- [ ] **Senaryo: Şema** · Verilen `docs/analytics.md` · Eğer okunursa · O zaman tüm olaylar (app_open, session_start, role_selected, circle_created, invite_created, invite_accepted, backend_error, puzzle_generated, piece_snapped, puzzle_resumed, hint_used, tts_availability, puzzle_completed, voice_played, thanks_sent, home_view, ui_text_scale, send_step, photo_selected, difficulty_chosen, voice_recorded, note_written, puzzle_sent, puzzle_send_failed, puzzle_opened, puzzle_deleted, push_permission, push_received, push_opened, pack_view, pack_locked_tap, quota_view, quota_blocked, premium_card_view, premium_card_dismiss, consent_accepted, data_delete_requested, data_delete_done, settings_change, plan_view, plan_purchase, plan_restore, circle_view, member_removed, account_linked) parametre tipleriyle listelidir ve UGS'de tanımlıdır.
+- [ ] **Senaryo: Rol ayrımı** · Verilen her olay · Eğer gönderilirse · O zaman ortak parametreler `role: "player"|"sender"|null` (olayın çemberindeki rol), `circle_id_hash`, `circle_type` (olay bir çembere bağlıysa) ve `circles_count` (kullanıcının üye olduğu çember sayısı) otomatik eklenir (Analytics sarmalayıcısı).
 - [ ] **Senaryo: Doğrulama** · Verilen dev build, iki cihaz (gönderen + oyuncu) · Eğer bir yapboz gönderilip çözülürse · O zaman UGS Event Browser'da olaylar iki rolde sırayla ve doğru parametrelerle görünür.
-- [ ] **Senaryo: Kapı sorgusu** · Verilen UGS SQL ve Firestore gece istatistikleri · Eğer `gate_report.sql` çalıştırılırsa · O zaman davet kabulü, aktif aile başına haftalık gönderim, Aile Planı dönüşümü (14 gün), 72 saat tamamlama oranı, oyuncu tarafı çökme oranı tek tabloda gelir.
-- [ ] **Senaryo: Sunucu tarafı sayım** · Verilen `families` ve `puzzles` · Eğer `nightlyStats` çalışırsa · O zaman `stats/{yyyy-MM-dd}` belgesinde aile sayısı, aktif aile (7 gün), gönderim, tamamlama, plan sayısı; UGS verisiyle çapraz kontrol (istemci olay kaybına karşı).
+- [ ] **Senaryo: Kapı sorgusu** · Verilen UGS SQL ve Firestore gece istatistikleri · Eğer `gate_report.sql` çalıştırılırsa · O zaman davet kabulü, aktif çember başına haftalık gönderim, Aile Planı dönüşümü (14 gün), 72 saat tamamlama oranı, oyuncu tarafı çökme oranı tek tabloda ve `circle_type` kırılımıyla gelir.
+- [ ] **Senaryo: Sunucu tarafı sayım** · Verilen `circles` ve `puzzles` · Eğer `nightlyStats` çalışırsa · O zaman `stats/{yyyy-MM-dd}` belgesinde türe göre çember sayısı, aktif çember (7 gün), kullanıcı başına çember dağılımı, gönderim, tamamlama, plan sayısı; UGS verisiyle çapraz kontrol (istemci olay kaybına karşı).
 - [ ] **Senaryo: Gizlilik** · Verilen olaylar · Eğer incelenirse · O zaman 15. story anonimlik kuralı sağlanır.
 
 ### Teknik görevler (Unity/C#)
-- [ ] `Analytics` (Core) sarmalayıcısı: `Track(string, Dictionary<string, object>)`, ortak parametre enjeksiyonu (`role`, `family_id_hash`, `device_class`), kuyruk + çevrimdışı tampon.
+- [ ] `Analytics` (Core) sarmalayıcısı: `Track(string, Dictionary<string, object>)`, ortak parametre enjeksiyonu (`role`, `circle_id_hash`, `circle_type`, `circles_count`, `device_class`), kuyruk + çevrimdışı tampon.
 - [ ] UGS Analytics custom event tanımları (dashboard), parametre tipleri.
-- [ ] `docs/analytics.md`, `docs/reports/gate_report.sql`, `funnel_sender.sql` (role_selected → family_created → invite_created → invite_accepted → puzzle_sent), `funnel_player.sql` (invite_accepted → puzzle_opened → puzzle_completed → thanks_sent), `completion_72h.sql`.
+- [ ] `docs/analytics.md`, `docs/reports/gate_report.sql`, `funnel_sender.sql` (role_selected → circle_created → invite_created → invite_accepted → puzzle_sent), `funnel_player.sql` (invite_accepted → puzzle_opened → puzzle_completed → thanks_sent), `completion_72h.sql`.
 - [ ] Cloud Function `nightlyStats` (Pub/Sub günlük) + `tools/export_stats.py` (Firestore → CSV).
 - [ ] Crashlytics (Firebase) çökme oranı; eski cihaz segmenti (`ram_mb < 3000`) ayrı satır.
 
@@ -705,12 +718,12 @@ milestone: MVP
 Bir geliştirici olarak uygulamayı "jigsaw for seniors" arayan çocuk/torunların bulacağı bir mağaza sayfasıyla üç ülkede kapalı test ve soft launch'a çıkarmak isterim, böylece davet ve gönderim verisi gerçek ailelerden gelsin.
 
 ### Kabul kriterleri
-- [ ] **Senaryo: Başlık ve metin** · Verilen Play listesi · Eğer yayımlanırsa · O zaman EN başlık 30 karakter sınırında "Family Jigsaw: For Seniors" (26; uzun ad "Family Jigsaw: Puzzles for Seniors" kısa açıklamanın başında), TR "Aile Yapbozu: Büyükler İçin" (27); kısa açıklama ≤ 80 karakter ("Send Mom a photo puzzle. No timer, no ads, big pieces, your voice at the end."); tam açıklamada "jigsaw for seniors", "puzzles for seniors", "family puzzle", "no timer", "large pieces", "voice message" geçer; TR'de "büyükanne yapboz", "yaşlılar için yapboz", "süre yok".
+- [ ] **Senaryo: Başlık ve metin** · Verilen Play listesi · Eğer yayımlanırsa · O zaman EN başlık 30 karakter sınırında "Family Jigsaw: For Seniors" (26; uzun ad "Family Jigsaw: Puzzles for Seniors" kısa açıklamanın başında), TR "Aile Yapbozu: Büyükler İçin" (27); kısa açıklama ≤ 80 karakter ("Send Mom a photo puzzle. No timer, no ads, big pieces, your voice at the end."); tam açıklamada "jigsaw for seniors", "puzzles for seniors", "family puzzle", "no timer", "large pieces", "voice message" geçer ve bir satır arkadaş çemberlerini anar ("Make circles for family and friends"); başlık ve kısa açıklama aile odaklı kalır; TR'de "büyükanne yapboz", "yaşlılar için yapboz", "süre yok".
 - [ ] **Senaryo: Görseller** · Verilen ekran görüntüleri · Eğer yüklenirse · O zaman telefon 8 (ilk üçü: oyuncu 3×3 ekranı "Süre yok · Reklam yok" ile, gönder akışı, bitince sesli mesaj), 7" ve 10" tablet 4'er (tablet listesi Play'de ayrı sekme), 1 özellik grafiği (iki telefon: anne ve çocuk), 20 sn video isteğe bağlı; her görselde ≥ 24 px başlık metni, kontrast ≥ 4,5:1.
 - [ ] **Senaryo: Kapalı test** · Verilen 12+ test kullanıcısı (6 aile: her biri 1 gönderen + 1 oyuncu, en az 2 oyuncu 65+) · Eğer 14 gün sürerse · O zaman Play üretim erişimi formu doldurulur; test ailelerinden 60+ gözlem notları `docs/usability.md`.
 - [ ] **Senaryo: Ülkeler** · Verilen soft launch · Eğer yayımlanırsa · O zaman yalnızca TR, UK, CA; Aile Planı fiyatı yerel (TR kademesi düşük, UK 3,49 GBP, CA 5,49 CAD başlangıç); yaş derecelendirmesi IARC "Herkes", kategori Puzzle, "Kids" programı dışı, hedef kitle 18+ beyanı.
 - [ ] **Senaryo: Sürüm bilgisi** · Verilen build · Eğer yayımlanırsa · O zaman versionCode ve versionName CHANGELOG ile eşleşir; gizlilik politikası URL'si, veri güvenliği formu (15. story) ve hesap silme URL'si (Play zorunluluğu; uygulama içi silme + web formu) dolu.
-- [ ] **Senaryo: Davet web sayfası** · Verilen `aileyapbozu.app/j/{kod}` · Eğer ziyaret edilirse · O zaman kod büyük, mağaza düğmeleri (Play; iOS "yakında") ve 3 adımlı "Annenin telefonuna nasıl kurulur" görseli; `assetlinks.json` doğrulanır.
+- [ ] **Senaryo: Davet web sayfası** · Verilen `aileyapbozu.app/j/{kod}` · Eğer ziyaret edilirse · O zaman kod büyük (çember adı gösterilmez), mağaza düğmeleri (Play; iOS "yakında") ve 3 adımlı "Telefona nasıl kurulur" görseli; `assetlinks.json` doğrulanır.
 
 ### Teknik görevler (Unity/C#)
 - [ ] Mağaza metinleri `docs/store/{en,tr}.md`; ASO anahtar kelime listesi ve rakip başlıkları (jigsaw/senior arama sonuçları ilk 20).
@@ -734,68 +747,71 @@ milestone: Soft launch
 
 **Aile Yapbozu** epic'inin **18. story'si** (epic #EPIC). Tema: Monetizasyon.
 
-**Öncelik:** P2 · **Efor:** L · **Milestone:** Soft launch · **Dokunduğu yer:** `IapService` (Core), `PlanScreen`, Cloud Function `verifyPurchase`, `families.plan`, Play Developer API
+**Öncelik:** P2 · **Efor:** L · **Milestone:** Soft launch · **Dokunduğu yer:** `IapService` (Core), `PlanScreen`, Cloud Function `verifyPurchase`, `users.plan` + `circles.ownerPlanUntil`, Play Developer API
 
 ### Kullanıcı hikâyesi
-Bir gönderen olarak aylık küçük bir ücretle sınırsız yapboz göndermek, aileme 5 kişiye kadar üye eklemek ve tüm paketleri açmak isterim; abonelik ailenin tamamına uygulanmalı ve telefon değiştirsem de geri gelmeli.
+Bir gönderen olarak aylık küçük bir ücretle sınırsız yapboz göndermek, istediğim kadar çember kurup her birine 5 kişiye kadar üye eklemek ve tüm paketleri açmak isterim; abonelik kurduğum tüm çemberlere uygulanmalı ve telefon değiştirsem de geri gelmeli.
 
 ### Kabul kriterleri
-- [ ] **Senaryo: Plan ekranı** · Verilen Aile Planı kartı (14. story) · Eğer dokunulursa · O zaman `PlanScreen`: 3 fayda (sınırsız gönderim, 5 üye, tüm paketler), "Annen hiçbir zaman reklam ya da satın alma görmez" satırı, aylık (3,99 USD) ve yıllık (29,99 USD, "%37 tasarruf") yerel fiyatlar, 7 gün ücretsiz deneme (yıllıkta), "Satın alımları geri yükle", abonelik koşulları bağlantısı.
-- [ ] **Senaryo: Satın alma** · Verilen Google Play Billing · Eğer aylık plan alınırsa · O zaman makbuz `verifyPurchase` ile sunucuda doğrulanır, `families/{id}.plan = "family"`, `planUntil`, `planPurchaser = uid` yazılır; tüm aile üyelerinde 5 sn içinde kota kalkar ve paketler açılır (listener).
-- [ ] **Senaryo: Yenileme ve iptal** · Verilen abonelik yenilendi ya da iptal edildi · Eğer Play Real-time Developer Notifications gelirse · O zaman `planUntil` güncellenir; süre dolunca `plan = "free"`, veri silinmez, 6. üye varsa yalnızca uyarı (çıkarılmaz).
-- [ ] **Senaryo: Geri yükleme** · Verilen yeni cihaz, aynı Google hesabı, yeni anonim uid · Eğer "Geri yükle" basılırsa · O zaman Play'den abonelik bulunur, `verifyPurchase` `purchaseToken`'ı önceki aileyle eşler ve kullanıcıyı o aileye `sender` olarak bağlar (davet kodu gerekmez).
-- [ ] **Senaryo: Tek plan bir aile** · Verilen plan satın alan kullanıcı başka bir aileye katılırsa (19. story) · Eğer denenirse · O zaman uyarı: "Aile Planı yalnızca bir aileye uygulanır".
-- [ ] **Senaryo: Hediye** · Verilen gönderen A planı aldı · Eğer ailede gönderen B varsa · O zaman B de plandan yararlanır ve B'nin ekranında kart "Aile Planı aktif · Emre'nin hediyesi" olur, satın alma düğmesi gizlenir.
+- [ ] **Senaryo: Plan ekranı** · Verilen Aile Planı kartı (14. story) · Eğer dokunulursa · O zaman `PlanScreen`: 3 fayda (sınırsız gönderim, sınırsız çember ve çember başına 5 üye, kurduğun çemberlerdeki herkese tüm paketler), "Annen hiçbir zaman reklam ya da satın alma görmez" satırı, aylık (3,99 USD) ve yıllık (29,99 USD, "%37 tasarruf") yerel fiyatlar, 7 gün ücretsiz deneme (yıllıkta), "Satın alımları geri yükle", abonelik koşulları bağlantısı.
+- [ ] **Senaryo: Satın alma** · Verilen Google Play Billing · Eğer aylık plan alınırsa · O zaman makbuz `verifyPurchase` ile sunucuda doğrulanır, `users/{uid}.plan = "plus"`, `planUntil` yazılır ve kullanıcının sahibi olduğu tüm `circles/{id}.ownerPlanUntil` güncellenir; bu çemberlerin tüm üyelerinde 5 sn içinde kota kalkar ve paketler açılır (listener). Sonradan kurulan çember de `createCircle`'da kapsama alınır.
+- [ ] **Senaryo: Yenileme ve iptal** · Verilen abonelik yenilendi ya da iptal edildi · Eğer Play Real-time Developer Notifications gelirse · O zaman `planUntil` ve sahip olunan çemberlerin `ownerPlanUntil` alanları güncellenir; süre dolunca `plan = "free"`, veri silinmez, 3'ten fazla üyeli ya da 2'den fazla kendi çemberi olan kullanıcıda hiçbir şey kapanmaz (yalnızca yeni üye/çember eklenemez, uyarı).
+- [ ] **Senaryo: Geri yükleme** · Verilen yeni cihaz, aynı Google hesabı, yeni anonim uid · Eğer "Geri yükle" basılırsa · O zaman Play'den abonelik bulunur, `verifyPurchase` `purchaseToken`'ı önceki uid ile eşler; önceki uid'nin sahibi olduğu çemberler yeni uid'ye devredilir ve kullanıcı bu çemberlere `owner` + `sender` olarak bağlanır (davet kodu gerekmez; katıldığı başka çemberler için kod gerekir).
+- [ ] **Senaryo: Plan kapsamı** · Verilen planlı Emre, Fatma'nın "Komşular" çemberine üye · Eğer Emre "Komşular"a gönderirse · O zaman Emre'nin gönderimi kotasızdır ama "Komşular"ın üye sınırı ve diğer üyelerin kotası değişmez (plan sahibinin kurduğu çemberleri kapsar, katıldıklarını değil); `PlanScreen`'de bu açıkça yazar.
+- [ ] **Senaryo: Hediye** · Verilen gönderen A planı aldı · Eğer A'nın kurduğu çemberde gönderen B varsa · O zaman B o çembere kotasız gönderir ve B'nin ekranında o çember için kart "Aile Planı aktif · Emre'nin hediyesi" olur; B'nin kendi çemberleri için satın alma düğmesi görünür kalır.
 - [ ] **Senaryo: Oyuncu tarafı** · Verilen plan aktif ya da değil · Eğer oyuncu ekranları gezilirse · O zaman hiçbir değişiklik dışında kilitli paketlerin açılması görülmez (fiyat/abonelik metni yok).
 
 ### Teknik görevler (Unity/C#)
-- [ ] Unity IAP abonelik ürünleri `family_monthly`, `family_yearly` (deneme teklifi Play'de base plan + offer); App Store Connect tanımları iOS build'i için hazır.
-- [ ] Cloud Function `verifyPurchase(purchaseToken, sku)` (callable): Google Play Developer API `purchases.subscriptionsv2.get`, `families` güncelleme, `purchases/{token}` kaydı (aile eşlemesi ve geri yükleme için); RTDN Pub/Sub aboneliği `onSubscriptionNotification`.
+- [ ] Unity IAP abonelik ürünleri `plus_monthly`, `plus_yearly` (deneme teklifi Play'de base plan + offer); App Store Connect tanımları iOS build'i için hazır.
+- [ ] Cloud Function `verifyPurchase(purchaseToken, sku)` (callable): Google Play Developer API `purchases.subscriptionsv2.get`, `users` + sahip olunan `circles.ownerPlanUntil` güncelleme (batch), `purchases/{token}` kaydı (uid eşlemesi ve geri yükleme için); RTDN Pub/Sub aboneliği `onSubscriptionNotification`.
 - [ ] `PlanGate` (14. story) `plan` ve `planUntil` okur; `PlanScreen` UI (gönderen teması, M kademe), fiyat `metadata.localizedPrice`.
-- [ ] Geri yükleme akışı: `IapService.Restore()` → token → `verifyPurchase` → aile bağlama (`joinFamilyByPurchase`).
+- [ ] Geri yükleme akışı: `IapService.Restore()` → token → `verifyPurchase` → sahiplik devri (`transferOwnedCircles(oldUid, newUid)`).
 - [ ] Fiyat testi: Remote Config `plan_price_variant` ile iki Play ürünü (A: 3,99 / B: 4,99 aylık) — soft launch'ta yalnızca UK ve CA'da.
 - [ ] Hata yolları: doğrulama başarısız (makbuz geçersiz) → kullanıcıya "Doğrulanamadı, tekrar dene", plan yazılmaz; çevrimdışı satın alma tamamlanınca kuyruğa.
 
 ### Analitik
-- `plan_view` {source: "card_home"|"card_send"|"quota"|"settings"} · `plan_purchase` {sku: string, price_local: string, trial: bool, family_members: int} · `plan_restore` {success: bool} · `plan_expired` — Kapı metriği: `plan_purchase` aile / davet kabul edilmiş aile ≥ %8
+- `plan_view` {source: "card_home"|"card_send"|"quota"|"settings"} · `plan_purchase` {sku: string, price_local: string, trial: bool, owned_circles: int, max_circle_members: int} · `plan_restore` {success: bool} · `plan_expired` — Kapı metriği: plan alan kullanıcı / en az bir kabul edilmiş daveti olan çember kurucusu ≥ %8
 
 ### Notlar
 - Karar: başlangıç fiyatı 3,99 USD/ay, 29,99 USD/yıl; TR'de yerel kademe (Play'in TR fiyat şablonu) ve "yıllık" vurgusu (TR'de aylık abonelik iptali yaygın).
-- Hediye akışı (üçüncü kişinin planı satın alıp aileye vermesi) bu story'de "aynı aile içindeki gönderen" ile sınırlı; dış hediye (hediye kodu) SONRA değerlendirilir.
+- Hediye akışı bu story'de "plan sahibinin kurduğu çemberdeki gönderenler" ile sınırlı; dış hediye (hediye kodu) SONRA değerlendirilir.
+- Karar (2026-10-16): plan kişiye yazılır, sahibi olduğu çemberleri kapsar; adı ("Aile Planı" / "Çember Planı" / "Plus") bu story'nin refine'ında seçilir; Play ürün kimlikleri `plus_monthly` / `plus_yearly` (ad değişse de kimlik sabit). Mağaza metninde "Family" ASO için korunur.
 - Bu story kapı sonrası değil, soft launch build'inde olmalı: dönüşüm kapısı bu olmadan ölçülemez. P2 ama soft launch'ın ilk günü canlı.
 
-## STORY: Aile Yapbozu 19: Aile yönetimi: üyeler, birden fazla oyuncu, hesap bağlama
+## STORY: Aile Yapbozu 19: Çember yönetimi: üyeler, birden fazla oyuncu, hesap bağlama
 labels: tema:aile, P2, efor:M
 milestone: Soft launch
 
-**Aile Yapbozu** epic'inin **19. story'si** (epic #EPIC). Tema: Aile bağlantısı.
+**Aile Yapbozu** epic'inin **19. story'si** (epic #EPIC). Tema: Çember bağlantısı.
 
-**Öncelik:** P2 · **Efor:** M · **Milestone:** Soft launch · **Dokunduğu yer:** `FamilyScreen` (gönderen), `FamilyService` genişletme, Firebase Auth hesap bağlama (Google / Apple), Cloud Function `removeMember`
+**Öncelik:** P2 · **Efor:** M · **Milestone:** Soft launch · **Dokunduğu yer:** `CirclesScreen` + `CircleDetailScreen` (gönderen), `CircleService` genişletme, Firebase Auth hesap bağlama (Google / Apple), Cloud Functions `removeMember`, `leaveCircle`, `updateCircle`
 
 ### Kullanıcı hikâyesi
-Bir gönderen olarak ailemdeki üyeleri (anne, baba, kardeşim) görmek, yeni oyuncu eklemek (babam da çözsün), bir üyeyi çıkarmak ve hesabımı Google ile bağlayıp telefon değiştirsem de kaybetmemek isterim.
+Bir gönderen olarak çemberlerimi (Aile, Arkadaşlar) ve her birindeki üyeleri görmek, çemberi yeniden adlandırmak, yeni oyuncu eklemek (babam da çözsün), bir üyeyi çıkarmak, bir çemberden ayrılmak ve hesabımı Google ile bağlayıp telefon değiştirsem de kaybetmemek isterim.
 
 ### Kabul kriterleri
-- [ ] **Senaryo: Üye listesi** · Verilen `FamilyScreen` · Eğer açılırsa · O zaman üyeler avatar + ad + rol + "son aktif: 2 gün önce" (oyuncu için yalnızca gönderene görünür), "Üye ekle" (kod üretir, 3. story), plan satırı ("3/5 üye · Ücretsiz" ya da "Aile Planı · 5 üyeye kadar").
-- [ ] **Senaryo: İkinci oyuncu** · Verilen ailede 1 oyuncu · Eğer "Üye ekle" → "Yapboz çözecek biri" seçilip kod başka cihazda `player` rolüyle girilirse · O zaman iki oyuncu olur; Send akışında adım 0 (alıcı seçimi, 11. story) açılır; her oyuncunun kendi gelen kutusu.
-- [ ] **Senaryo: Çıkarma** · Verilen bir üye · Eğer aile kurucusu "Çıkar" derse (onay) · O zaman `removeMember` üyeyi siler, o üyenin gönderdiği/aldığı yapbozlar kalır (silme 15. story'ye göre), çıkarılan cihazda RoleGate'e düşer ve "Aileden çıkarıldın" mesajı; oyuncu kendi kendini çıkaramaz (yanlışlıkla), gönderen çıkabilir.
-- [ ] **Senaryo: Hesap bağlama** · Verilen anonim gönderen · Eğer Ayarlar > "Hesabımı koru" → Google ile giriş · O zaman Firebase `linkWithCredential` ile aynı uid korunur; yeni cihazda Google ile giriş aynı uid'yi ve aileyi getirir; bağlı hesap zaten başka uid'deyse "Bu Google hesabı başka bir aileye bağlı" ve seçim (o aileye geç / vazgeç).
+- [ ] **Senaryo: Çember listesi** · Verilen gönderen Ayarlar > Çemberler · Eğer açılırsa · O zaman her çember bir satır (simge + ad + üye sayısı + "sahibi sensin" / "Fatma'nın çemberi"), "+ Yeni çember" (3. story) ve "Kod gir".
+- [ ] **Senaryo: Üye listesi** · Verilen `CircleDetailScreen` · Eğer açılırsa · O zaman üyeler avatar + ad + roller + "son aktif: 2 gün önce" (oyuncu için yalnızca gönderenlere görünür), "Üye ekle" (kod üretir, 3. story), plan satırı ("3/5 üye · Ücretsiz" ya da "Aile Planı · 5 üyeye kadar"); sahip için "Adı ve simgeyi değiştir".
+- [ ] **Senaryo: İkinci oyuncu** · Verilen çemberde 1 oyuncu · Eğer "Üye ekle" → "Yapboz çözecek biri" seçilip kod başka cihazda `player` rolüyle girilirse · O zaman iki oyuncu olur; Send akışında adım 0b (alıcı seçimi, 11. story) açılır; her oyuncunun kendi gelen kutusu.
+- [ ] **Senaryo: Çıkarma** · Verilen bir üye · Eğer çember sahibi "Çıkar" derse (onay) · O zaman `removeMember` üyeliği siler, o üyenin bu çemberde gönderdiği/aldığı yapbozlar kalır (silme 15. story'ye göre); çıkarılan kişinin başka çemberi varsa yalnızca bu çemberin yapbozları gelen kutusundan kalkar, hiç çemberi kalmadıysa RoleGate'e düşer; mesaj "Komşular çemberinden çıkarıldın".
+- [ ] **Senaryo: Ayrılma** · Verilen gönderen bir çemberde · Eğer "Çemberden ayrıl" derse (onay) · O zaman `leaveCircle` üyeliği siler; sahip ayrılırsa sahiplik en eski `sender` üyeye geçer (yoksa çember silinir, onay metni bunu söyler). Oyuncu kendi kendini çıkaramaz (yanlışlıkla), gönderen çıkabilir.
+- [ ] **Senaryo: Hesap bağlama** · Verilen anonim gönderen · Eğer Ayarlar > "Hesabımı koru" → Google ile giriş · O zaman Firebase `linkWithCredential` ile aynı uid korunur; yeni cihazda Google ile giriş aynı uid'yi ve tüm çemberleri getirir; bağlı hesap zaten başka uid'deyse "Bu Google hesabı başka bir cihazdaki çemberlere bağlı" ve seçim (o hesaba geç / vazgeç).
 - [ ] **Senaryo: Oyuncu tarafı** · Verilen oyuncu · Eğer Ayarlar açılırsa · O zaman hesap bağlama önerilmez (karmaşıklık); kaybolursa gönderen yeni kodla yeniden bağlar (3. story birleştirme).
-- [ ] **Senaryo: Ad düzenleme** · Verilen gönderen · Eğer oyuncunun adını düzenlerse ("Ayşe" → "Anneannem") · O zaman oyuncunun karşılaması ve bildirim metinleri güncellenir.
+- [ ] **Senaryo: Ad düzenleme** · Verilen gönderen · Eğer oyuncunun bu çemberdeki adını düzenlerse ("Ayşe" → "Anneannem") · O zaman o çemberden gelen karşılama ve bildirim metinleri güncellenir; diğer çemberlerdeki adı değişmez. Karşılama ("Günaydın Ayşe Hanım") oyuncunun ilk katıldığı çemberdeki adı kullanır.
 
 ### Teknik görevler (Unity/C#)
-- [ ] `FamilyScreen` UI (gönderen teması), üye satırları, çıkarma onayı, plan satırı.
-- [ ] `FamilyService`: `Members` listener, `RenameMember`, `Leave`; Cloud Function `removeMember` (yalnızca `createdBy` ya da kendisi; oyuncunun kendini çıkarması engelli), `users/{uid}.familyId = null`, FCM "Aileden çıkarıldın" (data-only, istemci RoleGate).
+- [ ] `CirclesScreen` + `CircleDetailScreen` UI (gönderen teması), çember satırları, üye satırları, çıkarma/ayrılma onayı, ad/simge düzenleme, plan satırı.
+- [ ] `CircleService`: `Members(circleId)` listener, `RenameMember`, `UpdateCircle(name, emoji)`, `Leave`; Cloud Functions `removeMember` (yalnızca `ownerId`; oyuncunun kendini çıkarması engelli), `leaveCircle` (sahiplik devri), `updateCircle`; `users/{uid}.circleIds` arrayRemove, FCM "çemberden çıkarıldın" (data-only, istemci gelen kutusunu tazeler ya da RoleGate).
 - [ ] Firebase Auth: Google Sign-In (Android) ve Sign in with Apple (iOS build'i için) `linkWithCredentialAsync`; çakışma (`credential-already-in-use`) akışı.
-- [ ] Çok oyunculu aile: `PuzzleRepository` sorguları `receiverId` bazlı (zaten), Send adım 0 alıcı kartları.
-- [ ] Emulator testi: çıkarma yetkisi, çakışan hesap bağlama.
+- [ ] Çok oyunculu çember: `PuzzleRepository` sorguları `receiverId` bazlı (zaten), Send adım 0b alıcı kartları.
+- [ ] Emulator testi: çıkarma yetkisi, sahiplik devri, son gönderen ayrılınca çember silme, çakışan hesap bağlama.
 
 ### Analitik
-- `family_view` {members: int, players: int, plan: string} · `member_removed` {role: string} · `account_linked` {provider: string, conflict: bool}
+- `circle_view` {circle_type: string, members: int, players: int, plan: string} · `member_removed` {role: string, by: "owner"|"self"} · `account_linked` {provider: string, conflict: bool}
 
 ### Notlar
-- Karar: oyuncuya hesap bağlama yok; oyuncunun kimliği aile belgesinde gönderenin verdiği ad; kayıp durumunda gönderen yeniden bağlar.
-- Açık soru: bir kullanıcı hem bir ailede gönderen hem başka ailede oyuncu olabilir mi (ör. 50 yaşında biri hem annesine gönderir hem çocuğundan alır)? v1: tek aile, tek rol; soft launch geri bildirimine göre.
+- Karar: oyuncuya hesap bağlama yok; oyuncunun kimliği çember üyeliğinde gönderenin verdiği ad; kayıp durumunda gönderen yeniden bağlar.
+- Açık soru kapandı (2026-10-16): bir kullanıcı birden fazla çemberde, her birinde farklı rollerle olabilir (ör. 50 yaşında biri annesine gönderir, çocuğundan alır). Rol üyeliğe yazılır (2. story).
 
 ## STORY: Aile Yapbozu 20: Ayarlar, yazı boyutu kademeleri ve değerlendirme isteği
 labels: tema:erisilebilirlik, P2, efor:S
@@ -812,8 +828,8 @@ Bir oyuncu olarak yazıyı daha da büyütmek, sesli yönlendirmeyi açıp kapat
 - [ ] **Senaryo: Oyuncu ayar listesi** · Verilen oyuncu Ayarlar · Eğer açılırsa · O zaman yalnızca 7 satır (her biri 96 px): Yazı boyutu (Normal / Büyük / Çok büyük), Sesli yönlendirme (açık/kapalı), Düğmeye dokununca söyle (açık/kapalı), Ses efektleri, Hareketi azalt, Dil, Bildirimler; en altta Gizlilik ve Sürüm; reklam/abonelik/değerlendirme satırı yok.
 - [ ] **Senaryo: Yazı boyutu** · Verilen "Çok büyük" seçildi · Eğer ekranlar çizilirse · O zaman gövde 28 px, düğme etiketi 30 px, düğme yüksekliği 96 px; Puzzle'da tepsi 120 px'e çıkar; hiçbir ekran kırpılmaz (ThemeLint üç kademede koşar).
 - [ ] **Senaryo: Düğmeye dokununca söyle** · Verilen açık · Eğer bir düğmeye ilk dokunuşta · O zaman TTS etiketi söyler ve eylem ikinci dokunuşta (600 ms içinde) çalışır; kapalıyken tek dokunuş.
-- [ ] **Senaryo: Gönderen ayarları** · Verilen gönderen Ayarlar · Eğer açılırsa · O zaman Aile, Aile Planı, Hesabımı koru, Bildirimler, Kayıt tarzı (basılı tut / dokun), Dil, Uygulamayı puanla, Gizlilik, Sürüm.
-- [ ] **Senaryo: Değerlendirme isteği** · Verilen gönderen, ailesinin 3. tamamlanan yapbozu bildirimi · Eğer SenderHome açılırsa · O zaman Google Play In-App Review bir kez tetiklenir; oyuncu tarafında asla.
+- [ ] **Senaryo: Gönderen ayarları** · Verilen gönderen Ayarlar · Eğer açılırsa · O zaman Çemberler, Aile Planı, Hesabımı koru, Bildirimler, Kayıt tarzı (basılı tut / dokun), Dil, Uygulamayı puanla, Gizlilik, Sürüm.
+- [ ] **Senaryo: Değerlendirme isteği** · Verilen gönderen, gönderdiği yapbozlardan 3.'sünün tamamlandı bildirimi · Eğer SenderHome açılırsa · O zaman Google Play In-App Review bir kez tetiklenir; oyuncu tarafında asla.
 - [ ] **Senaryo: Android geri** · Verilen Ayarlar açık · Eğer geri basılırsa · O zaman ana ekrana dönülür.
 
 ### Teknik görevler (Unity/C#)
@@ -842,14 +858,14 @@ milestone: Canlı
 Bir gönderen olarak bir haftadır yapboz göndermediysem nazik bir hatırlatma ("Annen son yapbozu Salı bitirdi, yeni bir tane gönderir misin?") ve Pazar akşamı küçük bir aile özeti almak isterim, böylece ritüel sürsün.
 
 ### Kabul kriterleri
-- [ ] **Senaryo: Hatırlatma** · Verilen aile 7 gündür gönderim yapmadı ve oyuncu son 14 günde aktif · Eğer `senderReminder` günlük çalışırsa · O zaman gönderene yerel saat 19:00'da (tz `users.tz`) bir bildirim; 14 gün içinde en fazla 1; Ayarlar'dan kapatılabilir; oyuncuya hiçbir hatırlatma yok.
-- [ ] **Senaryo: Haftalık özet** · Verilen Pazar 18:00 yerel · Eğer `weeklyDigest` çalışırsa · O zaman "Bu hafta: 2 yapboz, 31 dk, 1 teşekkür" bildirimi ve SenderHome'da özet kartı (fotoğraf küçük resimleri); hiç etkinlik yoksa gönderilmez.
-- [ ] **Senaryo: Kota farkındalığı** · Verilen ücretsiz aile ve Pazartesi · Eğer hafta yenilenirse · O zaman özet kartında "2 ücretsiz gönderim yenilendi" satırı (bildirim değil, kart).
+- [ ] **Senaryo: Hatırlatma** · Verilen gönderen bir çembere 7 gündür gönderim yapmadı ve o çemberin oyuncusu son 14 günde aktif · Eğer `senderReminder` günlük çalışırsa · O zaman gönderene yerel saat 19:00'da (tz `users.tz`) bir bildirim; 14 gün içinde en fazla 1; Ayarlar'dan kapatılabilir; oyuncuya hiçbir hatırlatma yok.
+- [ ] **Senaryo: Haftalık özet** · Verilen Pazar 18:00 yerel · Eğer `weeklyDigest` çalışırsa · O zaman "Bu hafta: 2 yapboz, 31 dk, 1 teşekkür" bildirimi ve SenderHome'da çember başına özet kartı (fotoğraf küçük resimleri); hiç etkinlik yoksa gönderilmez; gönderenin birden fazla çemberi varsa tek bildirimde toplanır.
+- [ ] **Senaryo: Kota farkındalığı** · Verilen ücretsiz gönderen ve Pazartesi · Eğer hafta yenilenirse · O zaman özet kartında "2 ücretsiz gönderim yenilendi" satırı (bildirim değil, kart).
 - [ ] **Senaryo: Sessiz aile** · Verilen oyuncu 30 gündür aktif değil · Eğer hatırlatma koşulu oluşursa · O zaman farklı metin: "Annenin telefonunda uygulama açılmamış görünüyor; bir bakar mısın?" (bir kez).
 
 ### Teknik görevler (Unity/C#)
 - [ ] Cloud Functions `senderReminder`, `weeklyDigest` (Pub/Sub, saatlik tarama, tz'ye göre gönderim), `users/{uid}.reminders {enabled, lastSentAt}`.
-- [ ] SenderHome `WeeklyDigestCard` (Firestore `families/{id}/digests/{week}`).
+- [ ] SenderHome `WeeklyDigestCard` (Firestore `circles/{id}/digests/{week}`).
 - [ ] Ayarlar: hatırlatma açık/kapalı (gönderen).
 
 ### Analitik
@@ -873,12 +889,12 @@ Bir gönderen olarak sesin yerine 15 saniyelik bir video (torunun "Anneanne seni
 ### Kabul kriterleri
 - [ ] **Senaryo: Kayıt** · Verilen adım 3'te "Video" seçildi · Eğer kayıt yapılırsa · O zaman ön kamera, ≤ 15 sn, 480p H.264, ≤ 8 MB; istemcide kodlama (Android `MediaCodec`, iOS `AVAssetExportSession`).
 - [ ] **Senaryo: Oynatma** · Verilen yapboz tamamlandı · Eğer video varsa · O zaman tam genişlik `VideoPlayer` kartı, büyük "Tekrar izle", ses otomatik açık; eski cihazda donma yoksa (test matrisi).
-- [ ] **Senaryo: Plan** · Verilen ücretsiz aile · Eğer video seçilirse · O zaman yalnızca Aile Planı (Storage maliyeti); kart teklifi.
+- [ ] **Senaryo: Plan** · Verilen ücretsiz gönderen ve kapsanmayan çember · Eğer video seçilirse · O zaman yalnızca Aile Planı (Storage maliyeti); kart teklifi.
 - [ ] **Senaryo: Saklama** · Verilen 90 gün · Eğer dolarsa · O zaman video da silinir.
 
 ### Teknik görevler (Unity/C#)
 - [ ] `VideoRecorder` eklentisi, Unity `VideoPlayer` ile oynatma (H.264 baseline, 2 GB cihaz testi), Storage kuralı ve boyut sınırı, `SendDraft.videoLocalPath`.
-- [ ] Maliyet modeli: aile başına aylık ≤ 40 MB; Blaze planı gerekir.
+- [ ] Maliyet modeli: çember başına aylık ≤ 40 MB; Blaze planı gerekir.
 
 ### Analitik
 - `video_recorded` {sec: int, mb: float} · `video_played` {replay: bool}
@@ -892,21 +908,21 @@ milestone: SONRA
 
 **Aile Yapbozu** epic'inin **23. story'si** (epic #EPIC). Tema: Altyapı.
 
-**Öncelik:** P3 · **Efor:** L · **Milestone:** SONRA · **Dokunduğu yer:** `MustyBigCalm` UPM paketi (yeni repo), `BigCalmTheme`, `LargeButton/Card/Keypad`, `TtsService`, `FamilyService`, `IFamilyBackend`, Firebase şablonu, `PlayerHome` iskeleti
+**Öncelik:** P3 · **Efor:** L · **Milestone:** SONRA · **Dokunduğu yer:** `MustyBigCalm` UPM paketi (yeni repo), `BigCalmTheme`, `LargeButton/Card/Keypad`, `TtsService`, `CircleService`, `ICircleBackend`, Firebase şablonu, `PlayerHome` iskeleti
 
 ### Kullanıcı hikâyesi
-Bir geliştirici olarak Aile Yapbozu'nda kanıtlanmış 60+ arayüz sistemini, aile bağlantısını, Firebase katmanını, TTS'i ve bildirim akışını ayrı bir pakete çıkarmak isterim, böylece Büyük Sudoku ve Büyük Kelime Avı 1 haftada "oyun motoru + içerik" olarak çıksın ve aile aboneliği seri genelinde geçerli olsun.
+Bir geliştirici olarak Aile Yapbozu'nda kanıtlanmış 60+ arayüz sistemini, çember bağlantısını, Firebase katmanını, TTS'i ve bildirim akışını ayrı bir pakete çıkarmak isterim, böylece Büyük Sudoku ve Büyük Kelime Avı 1 haftada "oyun motoru + içerik" olarak çıksın ve abonelik seri genelinde geçerli olsun.
 
 ### Kabul kriterleri
 - [ ] **Senaryo: Paket ayrışması** · Verilen Aile Yapbozu repo'su · Eğer `MustyBigCalm` paketi çıkarılırsa · O zaman Aile Yapbozu paketi UPM ile tüketir, davranış değişmez (regresyon: ThemeLint, Emulator testleri, Play Mode testleri yeşil).
-- [ ] **Senaryo: Yeni uygulama** · Verilen boş proje + `MustyCozyCore` + `MustyBigCalm` · Eğer "Büyük Sudoku" iskeleti kurulursa · O zaman RoleGate, aile bağlantısı, PlayerHome, Ayarlar, bildirim ve Firebase (aynı proje, `app` alanı) 1 günde çalışır; yalnızca `IPuzzleEngine` uygulaması (sudoku) yazılır.
-- [ ] **Senaryo: Ortak aile ve plan** · Verilen Aile Yapbozu'nda plan almış aile · Eğer Büyük Sudoku kurulursa · O zaman aynı aile ve plan tanınır (`families` ortak, `apps[]` alanı); gönderen Sudoku'da "zorluk + not" gönderir (fotoğraf yerine bulmaca seed'i).
+- [ ] **Senaryo: Yeni uygulama** · Verilen boş proje + `MustyCozyCore` + `MustyBigCalm` · Eğer "Büyük Sudoku" iskeleti kurulursa · O zaman RoleGate, çember bağlantısı, PlayerHome, Ayarlar, bildirim ve Firebase (aynı proje, `app` alanı) 1 günde çalışır; yalnızca `IPuzzleEngine` uygulaması (sudoku) yazılır.
+- [ ] **Senaryo: Ortak çember ve plan** · Verilen Aile Yapbozu'nda plan almış kullanıcı · Eğer Büyük Sudoku kurulursa · O zaman aynı çemberler ve plan tanınır (`circles` ortak, `apps[]` alanı); gönderen Sudoku'da "zorluk + not" gönderir (fotoğraf yerine bulmaca seed'i).
 - [ ] **Senaryo: Çapraz tanıtım** · Verilen oyuncu PlayerHome · Eğer seri uygulaması yüklüyse · O zaman "Hazır yapbozlar" yanında "Büyük Sudoku" kartı (yüklü değilse gönderen tarafında öneri; oyuncu tarafında mağaza linki yok).
 
 ### Teknik görevler (Unity/C#)
-- [ ] Repo `MustyBigCalm`: `Runtime/{Theme,UI,Tts,Family,Backend,Push,Privacy}`, `Editor/ThemeLint`, `Tests`; `package.json`, sürümleme.
+- [ ] Repo `MustyBigCalm`: `Runtime/{Theme,UI,Tts,Circles,Backend,Push,Privacy}`, `Editor/ThemeLint`, `Tests`; `package.json`, sürümleme.
 - [ ] `IPuzzleEngine {Load(payload), OnCompleted, HintAsync()}` arayüzü; Aile Yapbozu `JigsawEngine` olarak uyarlanır.
-- [ ] Firestore şema değişikliği: `puzzles.app` alanı, `families.apps[]`; kurallar güncellenir; Aile Planı `verifyPurchase` seri SKU'ları (`family_monthly` ortak ürün id, Play'de uygulama başına ayrı ama sunucuda tek plan).
+- [ ] Firestore şema değişikliği: `puzzles.app` alanı, `circles.apps[]`; kurallar güncellenir; plan `verifyPurchase` seri SKU'ları (`plus_monthly` ortak ürün id, Play'de uygulama başına ayrı ama sunucuda tek plan).
 - [ ] `docs/series-engine.md`: nelerin paket, nelerin uygulama olduğu.
 
 ### Analitik
@@ -956,13 +972,13 @@ milestone: SONRA
 Bir bakım evi etkinlik sorumlusu olarak kurumun tabletlerinde sakinler için büyük yapbozlar sunmak, ailelerinin fotoğraf göndermesini sağlamak ve bunu tek bir kurum lisansıyla ödemek isterim.
 
 ### Kabul kriterleri
-- [ ] **Senaryo: Kurum kurulumu** · Verilen web paneli · Eğer kurum oluşturulursa · O zaman N sakin profili, her sakine aile davet kodu, tabletlerde "sakin seç" ekranı (fotoğraf + ad, 120 px kartlar).
+- [ ] **Senaryo: Kurum kurulumu** · Verilen web paneli · Eğer kurum oluşturulursa · O zaman N sakin profili, her sakine bir aile çemberi ve davet kodu, tabletlerde "sakin seç" ekranı (fotoğraf + ad, 120 px kartlar).
 - [ ] **Senaryo: Kiosk** · Verilen kurum tableti · Eğer kiosk modu açıksa · O zaman Ayarlar ve rol değişimi PIN'li; uygulama kapanınca sakin seçimine döner; sesli mesajlar kulaklıkla ya da hoparlörle (ayar).
-- [ ] **Senaryo: Lisans** · Verilen kurum lisansı (uygulama dışı fatura) · Eğer aktifse · O zaman tüm sakin aileleri Aile Planı'na sahip sayılır; mağaza içi satın alma yok.
+- [ ] **Senaryo: Lisans** · Verilen kurum lisansı (uygulama dışı fatura) · Eğer aktifse · O zaman tüm sakin çemberleri plan kapsamında sayılır; mağaza içi satın alma yok.
 - [ ] **Senaryo: Gizlilik** · Verilen kurum · Eğer sakin verisi işlenirse · O zaman kurum veri işleyen sözleşmesi, sakin başına rıza kaydı, kurumdan ayrılınca veri silme.
 
 ### Teknik görevler (Unity/C#)
-- [ ] `organizations` modeli ve kurallar; kiosk modu (`KioskConfig`, PIN); web panel (Firebase Hosting + basit SPA); lisans alanı `families.orgId`.
+- [ ] `organizations` modeli ve kurallar; kiosk modu (`KioskConfig`, PIN); web panel (Firebase Hosting + basit SPA); lisans alanı `circles.orgId`.
 - [ ] Satış materyali ve fiyatlandırma (sakin başına aylık) `docs/b2b.md`.
 
 ### Analitik
